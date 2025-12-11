@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>خطة إنتاج المحتوى - قرية جود</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary-bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-dark: #0f172a;
+      --text-gray: #64748b;
+      
+      --blue-main: #2563eb;
+      --blue-light: #eff6ff;
+      
+      --green-main: #059669;
+      --green-light: #ecfdf5;
+      
+      --red-main: #b91c1c;
+      --red-light: #fef2f2;
+      
+      --purple-main: #7c3aed;
+      --purple-light: #f5f3ff;
+      
+      --radius: 16px;
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--primary-bg);
+      color: var(--text-dark);
+      padding: 40px 20px;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* --- الهيدر الرئيسي --- */
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--text-dark);
+      margin-bottom: 10px;
+    }
+    
+    header p {
+      font-size: 1.1rem;
+      color: var(--text-gray);
+      background: #fff;
+      display: inline-block;
+      padding: 8px 25px;
+      border-radius: 50px;
+      border: 1px solid #e2e8f0;
+      font-weight: 600;
+    }
+
+    /* --- أزرار التحكم (التبويبات) --- */
+    .nav-tabs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .tab-btn {
+      background: #fff;
+      border: 2px solid transparent;
+      padding: 25px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      text-align: right;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab-btn:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+
+    .tab-btn h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
+    .tab-btn span { font-size: 0.9rem; font-weight: 600; opacity: 0.8; display: block; line-height: 1.4; }
+    
+    .tab-number {
+        position: absolute;
+        left: 20px;
+        top: 20px;
+        font-size: 2rem;
+        font-weight: 900;
+        opacity: 0.1;
+    }
+
+    /* الحالة النشطة للأزرار */
+    .tab-btn.active-blue { border-color: var(--blue-main); background: var(--blue-light); color: var(--blue-main); }
+    .tab-btn.active-green { border-color: var(--green-main); background: var(--green-light); color: var(--green-main); }
+    .tab-btn.active-red { border-color: var(--red-main); background: var(--red-light); color: var(--red-main); }
+
+    /* --- منطقة المحتوى --- */
+    .content-area {
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      min-height: 600px;
+      position: relative;
+      border: 1px solid #e2e8f0;
+    }
+
+    .phase-content {
+      display: none;
+      padding: 50px;
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    .phase-content.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- رأس القسم الداخلي --- */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px dashed #cbd5e1;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .phase-badge {
+      padding: 8px 20px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 1rem;
+      white-space: nowrap;
+    }
+
+    .bg-blue { background: var(--blue-light); color: var(--blue-main); }
+    .bg-green { background: var(--green-light); color: var(--green-main); }
+    .bg-red { background: var(--red-light); color: var(--red-main); }
+
+    .marketing-msg {
+      font-size: 1.2rem;
+      font-weight: 700;
+      line-height: 1.8;
+      color: #334155;
+      padding: 25px;
+      background: #f8fafc;
+      border-radius: 16px;
+      border-right: 6px solid #94a3b8;
+      margin-bottom: 40px;
+    }
+    
+    .msg-blue { border-right-color: var(--blue-main); background: var(--blue-light); color: var(--blue-main); }
+    .msg-green { border-right-color: var(--green-main); background: var(--green-light); color: var(--green-main); }
+    
+    .marketing-msg strong { display: block; margin-bottom: 10px; font-size: 0.9rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* --- الشبكة الداخلية --- */
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+
+    @media (max-width: 900px) { .details-grid { grid-template-columns: 1fr; } }
+
+    .col-box h4 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* قوائم المهام والمواصفات */
+    .task-list { list-style: none; }
+    .task-item {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      transition: var(--transition);
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+    }
+    .task-item:hover { border-color: #94a3b8; transform: translateX(-5px); box-shadow: var(--shadow-sm); }
+
+    .icon-box {
+      width: 35px; height: 35px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+    
+    .p1 .icon-box { background: var(--blue-light); color: var(--blue-main); }
+    .p2 .icon-box { background: var(--green-light); color: var(--green-main); }
+    .p3 .icon-box { background: var(--red-light); color: var(--red-main); }
+
+    .item-content strong { display: block; color: var(--text-dark); margin-bottom: 4px; font-size: 1.05rem; }
+    .item-content span { font-size: 0.95rem; color: var(--text-gray); display: block; }
+    .item-content ul { margin-top: 8px; margin-right: 20px; color: var(--text-gray); font-size: 0.9rem; }
+    .item-content ul li { margin-bottom: 4px; }
+
+    /* ألوان العناوين */
+    .title-blue { color: var(--blue-main); }
+    .title-green { color: var(--green-main); }
+    .title-red { color: var(--red-main); }
+
+    /* تنسيق خاص للتباين الحسي */
+    .contrast-box {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    .contrast-header { font-weight: 800; margin-bottom: 10px; display: flex; justify-content: space-between; }
+    .contrast-row { display: flex; gap: 10px; margin-bottom: 5px; font-size: 0.9rem; }
+    .tag { padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+    .tag-dark { background: #334155; color: #fff; }
+    .tag-light { background: #e2e8f0; color: #334155; }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <h1>خطة إنتاج المحتوى التسويقي - قرية جود الإنسانية</h1>
+    <p>إصدار: جمعية جود – الإدارة المركزية | كراسة الشروط الفنية والإبداعية</p>
+  </header>
+
+  <div class="nav-tabs">
+    <button class="tab-btn active-blue" onclick="showPhase('section1', this, 'active-blue')">
+      <span class="tab-number">01</span>
+      <h3>الرؤية والمفهوم الإبداعي</h3>
+      <span>الهدف العام، القصة، والتوجه الفني (رحلة البطل)</span>
+    </button>
+
+    <button class="tab-btn" onclick="showPhase('section2', this, 'active-green')">
+      <span class="tab-number">02</span>
+      <h3>المخرجات والمشاهد</h3>
+      <span>الفيديوهات، الصور، وقوائم التصوير التفصيلية</span>
+    </button>
+
+    <button class="tab-btn" onclick="showPhase('section3', this, 'active-red')">
+      <span class="tab-number">03</span>
+      <h3>المواصفات والتنفيذ</h3>
+      <span>المعايير الفنية، الأخلاقية، والجدول الزمني</span>
+    </button>
+  </div>
+
+  <div class="content-area">
+
+    <div id="section1" class="phase-content p1 active">
+      <div class="section-header">
+        <div>
+          <h2 class="title-blue" style="font-size: 1.8rem; margin-bottom: 5px;">الرؤية والمفهوم الإبداعي</h2>
+          <p style="color:#64748b;">نقل الأسر من حياة الخطر إلى حياة الكرامة</p>
+        </div>
+        <div class="phase-badge bg-blue">الهدف: سرد قصة تحول الإنسان</div>
+      </div>
+
+      <div class="marketing-msg msg-blue">
+        <strong>جوهر القصة</strong>
+        "لا نريد مجرد توثيق للبناء (طابوق وأسمنت)، بل نريد سرد قصة رحلة البطل: الانتقال من الخوف الليلي وعدم الاستقرار إلى الأمان والسكينة."
+      </div>
+
+      <div class="details-grid">
+        <div class="col-box">
+          <h4 class="title-blue">🎭 رحلة البطل (Narrative Arc)</h4>
+          <ul class="task-list">
+            <li class="task-item">
+              <div class="icon-box">1</div>
+              <div class="item-content">
+                <strong>مرحلة "قبل" (الألم)</strong>
+                <span>التركيز على الخوف ليلاً، تسرب المياه، ضيق المساحة، وانعدام الأمان.</span>
+              </div>
+            </li>
+            <li class="task-item">
+              <div class="icon-box">2</div>
+              <div class="item-content">
+                <strong>مرحلة "أثناء" (الأمل)</strong>
+                <span>مشاعر الترقب والأمل عند رؤية الجدران ترتفع وبداية التنفيذ.</span>
+              </div>
+            </li>
+            <li class="task-item">
+              <div class="icon-box">3</div>
+              <div class="item-content">
+                <strong>مرحلة "بعد" (الأثر)</strong>
+                <span>أول ليلة نوم آمنة، اللعب أمام البيت، والاستقرار النفسي.</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="col-box">
+          <h4 class="title-blue">👁️ التباين الحسي (Visual Contrast)</h4>
+          <div class="contrast-box">
+            <div class="contrast-header" style="color:#dc2626;">الحياة على القارب (قبل)</div>
+            <div class="contrast-row"><span class="tag tag-dark">صوت</span> صرير الخشب، مياه، ضجيج</div>
+            <div class="contrast-row"><span class="tag tag-dark">حركة</span> اهتزاز، دوار، عدم ثبات</div>
+            <div class="contrast-row"><span class="tag tag-dark">إضاءة</span> ظلام، كآبة، ضيق</div>
+          </div>
+          <div class="contrast-box" style="border-color: #059669;">
+            <div class="contrast-header" style="color:#059669;">الحياة في البيت (بعد)</div>
+            <div class="contrast-row"><span class="tag tag-light">صوت</span> هدوء، سكينة، ضحك أطفال</div>
+            <div class="contrast-row"><span class="tag tag-light">حركة</span> ثبات، استقرار، أمان</div>
+            <div class="contrast-row"><span class="tag tag-light">إضاءة</span> شمس مشرقة، كرامة</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="section2" class="phase-content p2">
+      <div class="section-header">
+        <div>
+          <h2 class="title-green" style="font-size: 1.8rem; margin-bottom: 5px;">قائمة المخرجات والمشاهد</h2>
+          <p style="color:#64748b;">ما يجب تسليمه بالتفصيل</p>
+        </div>
+        <div class="phase-badge bg-green">التركيز: التنوع والشمولية</div>
+      </div>
+
+      <div class="details-grid">
+        <div class="col-box">
+          <h4 class="title-green">📦 المخرجات النهائية (Deliverables)</h4>
+          <ul class="task-list">
+            <li class="task-item">
+              <div class="icon-box">📹</div>
+              <div class="item-content">
+                <strong>الفيديوهات الرئيسية</strong>
+                <ul>
+                    <li>Hero Film (2-3 دقائق) - نسختين (16:9 و 9:16).</li>
+                    <li>Timelapse (30 ثانية) لبناء بيت كامل.</li>
+                    <li>جولة افتراضية POV داخل القرية.</li>
+                </ul>
+              </div>
+            </li>
+            <li class="task-item">
+              <div class="icon-box">📱</div>
+              <div class="item-content">
+                <strong>باقة السوشيال (Reels)</strong>
+                <span>15 فيديو قصير (قبل، أثناء، بعد) + مكتبة B-Roll و ASMR.</span>
+              </div>
+            </li>
+            <li class="task-item">
+              <div class="icon-box">⭐</div>
+              <div class="item-content">
+                <strong>باقة كبار الداعمين (VIP Kit)</strong>
+                <span>20 مقطع "لوحة بيضاء" للأطفال (لتركيب الأسماء) + رسائل شكر.</span>
+              </div>
+            </li>
+             <li class="task-item">
+              <div class="icon-box">📷</div>
+              <div class="item-content">
+                <strong>الصور الفوتوغرافية</strong>
+                <span>90 صورة احترافية (30 قبل / 30 أثناء / 30 بعد).</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="col-box">
+          <h4 class="title-green">🎬 قائمة المشاهد (Shoot List)</h4>
+          <ul class="task-list">
+            <li class="task-item">
+              <div class="item-content">
+                <strong style="color:#b91c1c">المحور الأول: الألم (Before)</strong>
+                <span>يد طفل تلمس الخشب المتعفن، مياه تحت السرير، مذاكرة في الضيق، مقابلة "ما يخيفك؟".</span>
+              </div>
+            </li>
+            <li class="task-item">
+              <div class="item-content">
+                <strong style="color:#d97706">المحور الثاني: البناء (During)</strong>
+                <span>خلط الأسمنت، العمال، الجدران ترتفع، لوحة "قرية جود"، زيارات ميدانية.</span>
+              </div>
+            </li>
+            <li class="task-item">
+              <div class="item-content">
+                <strong style="color:#059669">المحور الثالث: الحياة (After)</strong>
+                <span>لحظة فتح الباب (أساسية)، طفل يذاكر على طاولة، مقابلة الأب، بانوراما للقرية.</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div id="section3" class="phase-content p3">
+      <div class="section-header">
+        <div>
+          <h2 class="title-red" style="font-size: 1.8rem; margin-bottom: 5px;">المواصفات والتنفيذ</h2>
+          <p style="color:#64748b;">المعايير الفنية والجدول الزمني</p>
+        </div>
+        <div class="phase-badge bg-red">للإرسال لشركة الإنتاج</div>
+      </div>
+
+      <div class="details-grid">
+        <div class="col-box">
+          <h4 class="title-red">⚙️ المواصفات الفنية (Technical Specs)</h4>
+          <ul class="task-list">
+            <li class="task-item">
+              <div class="icon-box">1</div>
+              <div class="item-content">
+                <strong>جودة الفيديو والصور</strong>
+                <span>4K / 25-30fps للفيديو. 24MP+ وصيغة RAW للصور.</span>
+              </div>
+            </li>
+            <li class="task-item">
+              <div class="icon-box">2</div>
+              <div class="item-content">
+                <strong>الصوت (Audio)</strong>
+                <span>تسليم Clean Audio (بدون موسيقى) + تسجيل أصوات البيئة بشكل مستقل.</span>
+              </div>
+            </li>
+            <li class="task-item">
+              <div class="icon-box">3</div>
+              <div class="item-content">
+                <strong>تنظيم الملفات</strong>
+                <span>مجلدات منفصلة: Before, During, After, Reels, Interviews.</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="col-box">
+          <h4 class="title-red">📅 التنفيذ والأخلاقيات</h4>
+          <ul class="task-list">
+            <li class="task-item">
+              <div class="item-content">
+                <strong>المعايير الأخلاقية</strong>
+                <span>احترام كرامة الأسر، عدم إظهار لقطات مهينة، وطلب موافقة (Consent) قبل التصوير.</span>
+              </div>
+            </li>
+            <li class="task-item">
+              <div class="item-content">
+                <strong>الجدول الزمني</strong>
+                <ul>
+                    <li>التصوير: 3-5 أيام.</li>
+                    <li>تسليم أولي (Rush): خلال 48 ساعة.</li>
+                    <li>تسليم نهائي: خلال 10 أيام.</li>
+                </ul>
+              </div>
+            </li>
+            <li class="task-item" style="border-color:var(--text-dark); background:#f1f5f9;">
+              <div class="item-content">
+                <strong>المطلوب الآن من المكتب</strong>
+                <span>البحث عن شركة إنتاج، إرسال هذه الوثيقة، طلب عرض سعر وعينات سابقة.</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  function showPhase(sectionId, btnElement, activeClass) {
+    // 1. إخفاء جميع المحتويات
+    document.querySelectorAll('.phase-content').forEach(content => {
+      content.classList.remove('active');
+    });
+
+    // 2. إزالة التنشيط من جميع الأزرار
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      // نحتفظ بكلاس tab-btn الأساسي ونزيل الباقي المضاف
+      btn.className = 'tab-btn'; 
+    });
+
+    // 3. إظهار المحتوى المطلوب
+    document.getElementById(sectionId).classList.add('active');
+
+    // 4. تلوين الزر المختار
+    btnElement.classList.add(activeClass);
+  }
+</script>
+
+</body>
+</html>
