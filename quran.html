@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>متابع الورد (جاهز للعمل)</title>
+    <title>متابع الورد (V26 - الإصلاح الجذري)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -42,16 +42,33 @@
 </head>
 <body id="bodyEl" class="min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-500 bg-[#f0fdf4] dark:bg-emerald-950 text-slate-800 dark:text-slate-100">
 
-    <div id="audioUnlocker" class="fixed inset-0 z-[99999] opacity-0" style="display: none;" onclick="unlockAudioContext()"></div>
+    <div id="audioUnlocker" class="fixed inset-0 z-[99999] opacity-0" style="display: none;" onclick="window.unlockAudioContext()"></div>
 
+    <!-- 1. Global Helpers Script -->
+    <script>
+        window.safeSetText = function(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
+        };
+        window.safeSetClass = function(id, className, action) {
+            const el = document.getElementById(id);
+            if (el) {
+                if(action === 'add') el.classList.add(className);
+                if(action === 'remove') el.classList.remove(className);
+            }
+        };
+        window.safeSetStyle = function(id, property, value) {
+            const el = document.getElementById(id);
+            if (el) el.style[property] = value;
+        };
+    </script>
+
+    <!-- 2. Firebase Module -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, doc, onSnapshot, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-        // =======================================================
-        // 🟢 تم دمج المفاتيح بنجاح (جاهز للاستخدام) 🟢
-        // =======================================================
         const firebaseConfig = {
             apiKey: "AIzaSyBSMaNzhzKCtfQcL7kyCoz6CWmQM4pMsds",
             authDomain: "muslimhabit-b21fd.firebaseapp.com",
@@ -61,28 +78,10 @@
             appId: "1:250434152968:web:3b9ed463db1c0e873a3fbd",
             measurementId: "G-9BR2F65RGC"
         };
-        // =======================================================
 
         let app, auth, db;
         let currentUser = null;
         let unsubscribeDoc = null;
-
-        // --- دوال الحماية لمنع الأخطاء ---
-        function safeSetText(id, text) {
-            const el = document.getElementById(id);
-            if (el) el.textContent = text;
-        }
-        function safeSetClass(id, className, action) {
-            const el = document.getElementById(id);
-            if (el) {
-                if(action === 'add') el.classList.add(className);
-                if(action === 'remove') el.classList.remove(className);
-            }
-        }
-        function safeSetStyle(id, property, value) {
-            const el = document.getElementById(id);
-            if (el) el.style[property] = value;
-        }
 
         try {
             app = initializeApp(firebaseConfig);
@@ -152,7 +151,7 @@
                 'auth/wrong-password': 'كلمة المرور خاطئة',
                 'auth/email-already-in-use': 'البريد مستخدم بالفعل',
                 'auth/weak-password': 'كلمة المرور ضعيفة (6 أحرف على الأقل)',
-                'auth/operation-not-allowed': 'يرجى تفعيل البريد/كلمة المرور في لوحة Firebase'
+                'auth/operation-not-allowed': 'يرجى تفعيل "Email/Password" في إعدادات Firebase'
             };
             return errors[code] || ('خطأ: ' + code);
         }
@@ -165,10 +164,10 @@
             <p class="text-sm text-gray-500">سجل دخولك لحفظ الورد في "MuslimHabit"</p>
         </div>
         <div class="flex bg-gray-100 dark:bg-emerald-900/50 p-1 rounded-xl mb-6">
-            <button onclick="switchAuthMode('login')" id="tabLogin" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow text-emerald-700 transition-all">دخول</button>
-            <button onclick="switchAuthMode('register')" id="tabRegister" class="flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-emerald-600 transition-all">حساب جديد</button>
+            <button onclick="window.switchAuthMode('login')" id="tabLogin" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow text-emerald-700 transition-all">دخول</button>
+            <button onclick="window.switchAuthMode('register')" id="tabRegister" class="flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-emerald-600 transition-all">حساب جديد</button>
         </div>
-        <form onsubmit="handleAuth(event)" class="space-y-4">
+        <form onsubmit="window.handleAuth(event)" class="space-y-4">
             <input type="email" id="email" required class="auth-input" placeholder="البريد الإلكتروني">
             <input type="password" id="password" required class="auth-input" placeholder="كلمة المرور">
             <div id="authError" class="hidden text-xs text-red-500 bg-red-50 p-2 rounded text-center font-bold"></div>
@@ -190,16 +189,16 @@
                     </div>
                 </div>
             </div>
-            <button onclick="logoutUser()" class="text-xs text-red-500 bg-red-50 px-3 py-1 rounded hover:bg-red-100 transition">خروج</button>
+            <button onclick="window.logoutUser()" class="text-xs text-red-500 bg-red-50 px-3 py-1 rounded hover:bg-red-100 transition">خروج</button>
         </div>
 
         <!-- Controls -->
         <div class="flex justify-between items-center mb-4 bg-gray-50 dark:bg-white/5 p-2 rounded-xl border border-gray-100 dark:border-gray-700">
             <div class="flex gap-2">
-                <button onclick="toggleSound(event)" id="soundBtn" class="bg-white dark:bg-emerald-800 w-8 h-8 rounded-full shadow text-xs flex items-center justify-center transition hover:scale-110">🔊</button>
-                <button onclick="toggleDarkMode()" class="bg-white dark:bg-emerald-800 w-8 h-8 rounded-full shadow text-xs flex items-center justify-center transition hover:scale-110">🌙</button>
+                <button onclick="window.toggleSound(event)" id="soundBtn" class="bg-white dark:bg-emerald-800 w-8 h-8 rounded-full shadow text-xs flex items-center justify-center transition hover:scale-110">🔊</button>
+                <button onclick="window.toggleDarkMode()" class="bg-white dark:bg-emerald-800 w-8 h-8 rounded-full shadow text-xs flex items-center justify-center transition hover:scale-110">🌙</button>
             </div>
-            <button onclick="toggleSimulator()" class="text-[10px] text-emerald-600 bg-white px-3 py-1.5 rounded-full shadow-sm hover:bg-emerald-50 transition">⏱ المحاكاة</button>
+            <button onclick="window.toggleSimulator()" class="text-[10px] text-emerald-600 bg-white px-3 py-1.5 rounded-full shadow-sm hover:bg-emerald-50 transition">⏱ المحاكاة</button>
         </div>
 
         <!-- Date & Header -->
@@ -209,7 +208,6 @@
             <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3 overflow-hidden">
                 <div id="dailyProgressBar" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
             </div>
-            <!-- Added ID explicitly here -->
             <p id="progressLabel" class="text-xs text-gray-500 mt-2">0 من 5 صلوات</p>
         </div>
 
@@ -235,12 +233,12 @@
         <div class="space-y-3 relative z-10" id="prayersList"></div>
 
         <!-- Reset Button -->
-        <button onclick="openResetModal()" class="block mx-auto mt-6 text-[10px] text-gray-400 underline hover:text-red-500 transition">إعادة ضبط اليوم</button>
+        <button onclick="window.openResetModal()" class="block mx-auto mt-6 text-[10px] text-gray-400 underline hover:text-red-500 transition">إعادة ضبط اليوم</button>
 
         <!-- Simulator -->
         <div id="simulatorPanel" class="hidden mt-4 p-3 bg-yellow-50 rounded-xl border border-yellow-100 text-center">
-            <input type="date" id="simulatedDate" class="text-xs p-1 rounded border" onchange="manualUpdate()">
-            <button onclick="resetToToday()" class="text-[10px] text-red-500 block mx-auto mt-1">إلغاء</button>
+            <input type="date" id="simulatedDate" class="text-xs p-1 rounded border" onchange="window.manualUpdate()">
+            <button onclick="window.resetToToday()" class="text-[10px] text-red-500 block mx-auto mt-1">إلغاء</button>
         </div>
     </div>
 
@@ -253,8 +251,8 @@
                 <p class="text-xs text-gray-500">سيتم مسح بيانات اليوم من السحابة</p>
             </div>
             <div class="flex gap-3">
-                <button onclick="confirmReset()" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl text-sm font-bold transition">نعم</button>
-                <button onclick="closeResetModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-xl text-sm font-bold transition">لا</button>
+                <button onclick="window.confirmReset()" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl text-sm font-bold transition">نعم</button>
+                <button onclick="window.closeResetModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-xl text-sm font-bold transition">لا</button>
             </div>
         </div>
     </div>
@@ -262,9 +260,9 @@
     <!-- Logic Script -->
     <script>
         // --- Auth Logic ---
-        let currentAuthMode = 'login';
-        function switchAuthMode(mode) {
-            currentAuthMode = mode;
+        window.currentAuthMode = 'login';
+        window.switchAuthMode = function(mode) {
+            window.currentAuthMode = mode;
             safeSetClass('authError', 'hidden', 'add');
             if (mode === 'login') {
                 safeSetClass('tabLogin', 'text-emerald-700', 'add');
@@ -275,9 +273,9 @@
                 safeSetClass('tabLogin', 'text-gray-500', 'add');
                 safeSetText('submitBtn', "إنشاء حساب جديد");
             }
-        }
+        };
 
-        async function handleAuth(e) {
+        window.handleAuth = async function(e) {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -287,6 +285,7 @@
             btn.disabled = true; btn.textContent = "...";
 
             try {
+                if(!window.authAPI) throw "جاري تهيئة الاتصال... انتظر لحظة";
                 if(window.currentAuthMode === 'login' || !window.currentAuthMode) {
                     await window.authAPI.login(email, password);
                 } else {
@@ -299,23 +298,17 @@
                 btn.disabled = false;
                 btn.textContent = window.currentAuthMode === 'login' ? "تسجيل الدخول" : "إنشاء حساب";
             }
-        }
+        };
 
-        function logoutUser() { if(confirm("تسجيل خروج؟")) window.authAPI.logout(); }
+        window.logoutUser = async function() { if(confirm("تسجيل خروج؟")) window.authAPI.logout(); }
 
         // --- Core App Logic ---
         const START_DATE_STR = '2026-01-01';
         const PAGES_PER_DAY = 5;
         const QURAN_PAGES = 604;
         let isSimulating = false, simulatedDateObj = new Date(), soundEnabled = true;
-        let currentPrayersState = [false, false, false, false, false];
-        const prayers = [
-            { id: 0, name: "الفجر", icon: "🌅" },
-            { id: 1, name: "الظهر", icon: "☀️" },
-            { id: 2, name: "العصر", icon: "⛅" },
-            { id: 3, name: "المغرب", icon: "🌇" },
-            { id: 4, name: "العشاء", icon: "🌌" }
-        ];
+        let currentPrayersState = [false,false,false,false,false];
+        const prayers = [{id:0,name:"الفجر",icon:"🌅"},{id:1,name:"الظهر",icon:"☀️"},{id:2,name:"العصر",icon:"⛅"},{id:3,name:"المغرب",icon:"🌇"},{id:4,name:"العشاء",icon:"🌌"}];
 
         // Init
         window.addEventListener('firebase-ready', () => { updateUI(false); });
@@ -337,8 +330,8 @@
         // --- Audio Logic ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
-        function initAudioContext() { if (!audioCtx) audioCtx = new AudioContext(); return audioCtx; }
-        function unlockAudioContext() {
+        window.initAudioContext = function() { if (!audioCtx) audioCtx = new AudioContext(); return audioCtx; }
+        window.unlockAudioContext = function() {
             const ctx = window.initAudioContext();
             if (ctx.state === 'suspended') {
                 ctx.resume().then(() => {
@@ -347,10 +340,9 @@
                 });
             }
         }
-        window.unlockAudioContext = unlockAudioContext;
         ['click', 'touchstart', 'touchend'].forEach(event => document.body.addEventListener(event, window.unlockAudioContext, { once: true }));
 
-        function playPopSound() {
+        window.playPopSound = function() {
             if (!soundEnabled) return;
             const ctx = window.initAudioContext();
             if (ctx.state === 'suspended') ctx.resume();
@@ -364,8 +356,9 @@
             gain.connect(ctx.destination);
             osc.start();
             osc.stop(ctx.currentTime + 0.1);
-        }
-        function playClickSound() {
+        };
+
+        window.playClickSound = function() {
             if (!soundEnabled) return;
             const ctx = window.initAudioContext();
             if (ctx.state === 'suspended') ctx.resume();
@@ -379,9 +372,9 @@
             gain.connect(ctx.destination);
             osc.start();
             osc.stop(ctx.currentTime + 0.1);
-        }
+        };
 
-        function triggerCelebration() {
+        window.triggerCelebration = function() {
             const container = document.body;
             if(soundEnabled) { [0, 150, 300, 450, 600, 800].forEach(t => setTimeout(() => window.playPopSound(), t)); }
             for (let i = 0; i < 40; i++) {
@@ -395,39 +388,45 @@
                 container.appendChild(el);
                 setTimeout(() => { el.remove(); }, 6000);
             }
-        }
+        };
 
         window.toggleSound = function(e) {
             if(e) e.stopPropagation();
             soundEnabled = !soundEnabled;
             safeSetText('soundBtn', soundEnabled ? '🔊' : '🔇');
             if(soundEnabled) window.playClickSound();
-        }
+        };
+
         window.toggleDarkMode = function() {
             document.documentElement.classList.toggle('dark');
             safeSetText('themeIcon', document.documentElement.classList.contains('dark') ? '☀️' : '🌙');
-        }
+        };
+
         window.toggleSimulator = function() { 
             const panel = document.getElementById('simulatorPanel');
             if(panel) panel.classList.toggle('hidden'); 
-        }
+        };
+
         window.manualUpdate = function() {
             const val = document.getElementById('simulatedDate').value;
             if(val) { isSimulating = true; simulatedDateObj = new Date(val); safeSetClass('simulationBadge', 'hidden', 'remove'); updateUI(true); }
-        }
+        };
+
         window.resetToToday = function() { 
             isSimulating = false; 
             document.getElementById('simulatedDate').value = ''; 
             safeSetClass('simulationBadge', 'hidden', 'add'); 
             updateUI(true); 
-        }
-        window.openResetModal = function() { safeSetClass('resetModal', 'hidden', 'remove'); }
-        window.closeResetModal = function() { safeSetClass('resetModal', 'hidden', 'add'); }
+        };
+
+        window.openResetModal = function() { safeSetClass('resetModal', 'hidden', 'remove'); };
+        window.closeResetModal = function() { safeSetClass('resetModal', 'hidden', 'add'); };
         window.confirmReset = function() {
             if (window.firebaseAPI) window.firebaseAPI.saveProgress(getStorageKey(), [false,false,false,false,false]);
             window.closeResetModal();
-        }
-        window.openQuranPage = function(pageNum) { window.open(`https://quran.com/page/${pageNum}`, '_blank'); }
+        };
+
+        window.openQuranPage = function(pageNum) { window.open(`https://quran.com/page/${pageNum}`, '_blank'); };
 
         // --- Render UI (Protected) ---
         window.togglePrayer = function(index) {
@@ -442,7 +441,7 @@
                 else playClickSound();
             }
             if (window.firebaseAPI) window.firebaseAPI.saveProgress(dateStr, newData);
-        }
+        };
 
         function renderPrayersList() {
             const now = isSimulating ? new Date(simulatedDateObj) : new Date();
@@ -533,7 +532,7 @@
             if(loader) loader.classList.add('hidden');
         }
 
-        function updateUI(shouldFetchApi = true) {
+        window.updateUI = function(shouldFetchApi = true) {
             const now = isSimulating ? new Date(simulatedDateObj) : new Date();
             now.setHours(0,0,0,0);
             const startDate = new Date(START_DATE_STR);
@@ -552,7 +551,16 @@
                 // Initialize Data Listener
                 loadPrayersData(getStorageKey());
             }
-        }
+        };
+
+        // Add Listeners (Last thing)
+        const interactionEvents = ['click', 'touchstart', 'touchend'];
+        interactionEvents.forEach(event => {
+            if(document.body) {
+                document.body.addEventListener(event, window.unlockAudioContext, { once: true });
+            }
+        });
+
     </script>
 </body>
 </html>
