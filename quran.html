@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>متابع الورد (متصل: MuslimHabit)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: { 950: '#022c22' },
+                        gold: { 500: '#d4af37' }
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; transition: background-color 0.5s ease; overflow-x: hidden; touch-action: manipulation; }
+        .quran-font { font-family: 'Amiri', serif; }
+        .glass-card { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        
+        /* Checkbox & Styles */
+        .prayer-checkbox:checked + div { background-color: #10b981; border-color: #059669; color: white; transform: scale(1.02); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+        .prayer-checkbox:checked + div .page-num { color: #d1fae5; }
+        .prayer-checkbox:checked + div .icon-box { background-color: rgba(255,255,255,0.2); color: white; }
+        .auth-input { @apply w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all bg-white/50 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-white; }
+        
+        /* Status Indicator */
+        .cloud-status { width: 8px; height: 8px; border-radius: 50%; display: inline-block; transition: all 0.3s; }
+        .status-online { background-color: #10b981; box-shadow: 0 0 8px #10b981; }
+        .status-offline { background-color: #ef4444; }
+
+        /* Loader */
+        .loader-line { height: 2px; width: 100%; position: relative; overflow: hidden; background-color: rgba(255, 255, 255, 0.2); }
+        .loader-line:before { display: block; position: absolute; content: ""; left: -200px; width: 200px; height: 2px; background-color: #ffffff; animation: loading 2s linear infinite; }
+        @keyframes loading { from {left: -200px; width: 30%;} 50% {width: 30%;} 70% {width: 70%;} 80% { left: 50%;} 95% {left: 120%;} to {left: 100%;} }
+
+        /* Confetti Balloon */
+        .balloon { position: fixed; top: 50%; left: 50%; z-index: 9999; pointer-events: none; line-height: 1; transform: translate(-50%, -50%) scale(0); animation: balloon-float ease-out forwards; }
+        @keyframes balloon-float { 
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 
+            10% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 
+            100% { transform: translate(var(--end-x), -120vh) rotate(var(--rot)) scale(1.2); opacity: 0.8; } 
+        }
+    </style>
+</head>
+<body id="bodyEl" class="min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-500 bg-[#f0fdf4] dark:bg-emerald-950 text-slate-800 dark:text-slate-100">
+
+    <!-- Audio Unlocker (iOS Fix) -->
+    <div id="audioUnlocker" class="fixed inset-0 z-[99999] opacity-0" style="display: none;" onclick="unlockAudioContext()"></div>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        // استيراد المكتبات (نستخدم إصدار ثابت لضمان التوافق)
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, onSnapshot, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // =================================================================================
+        // إعدادات Firebase الخاصة بك (تم دمجها)
+        // =================================================================================
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBSMaNzhzKCtfQcL7kyCoz6CWmQM4pMsds",
+            authDomain: "muslimhabit-b21fd.firebaseapp.com",
+            projectId: "muslimhabit-b21fd",
+            storageBucket: "muslimhabit-b21fd.firebasestorage.app",
+            messagingSenderId: "250434152968",
+            appId: "1:250434152968:web:3b9ed463db1c0e873a3fbd",
+            measurementId: "G-9BR2F65RGC"
+        };
+
+        // =================================================================================
+
+        let app, auth, db;
+        let currentUser = null;
+        let unsubscribeDoc = null;
+
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                const authScreen = document.getElementById('authScreen');
+                const mainApp = document.getElementById('mainApp');
+                
+                if (user) {
+                    authScreen.classList.add('hidden');
+                    mainApp.classList.remove('hidden');
+                    document.getElementById('userEmailDisplay').textContent = user.email;
+                    document.getElementById('cloudIndicator').classList.add('status-online');
+                    document.getElementById('cloudIndicator').classList.remove('status-offline');
+                    document.getElementById('cloudText').textContent = "متصل";
+                    window.dispatchEvent(new Event('firebase-ready'));
+                } else {
+                    authScreen.classList.remove('hidden');
+                    mainApp.classList.add('hidden');
+                }
+            });
+
+            // تصدير الدوال
+            window.authAPI = {
+                login: async (email, password) => {
+                    try { await signInWithEmailAndPassword(auth, email, password); } 
+                    catch (e) { throw translateAuthError(e.code); }
+                },
+                register: async (email, password) => {
+                    try { await createUserWithEmailAndPassword(auth, email, password); } 
+                    catch (e) { throw translateAuthError(e.code); }
+                },
+                logout: async () => {
+                    if (unsubscribeDoc) unsubscribeDoc();
+                    await signOut(auth);
+                }
+            };
+
+            window.firebaseAPI = {
+                subscribeToDate: (dateStr, callback) => {
+                    if (!db || !currentUser) return;
+                    if (unsubscribeDoc) unsubscribeDoc();
+                    const docPath = doc(db, 'users', currentUser.uid, 'daily_reads', dateStr);
+                    unsubscribeDoc = onSnapshot(docPath, (snap) => {
+                        if (snap.exists()) callback(snap.data().prayers || [false,false,false,false,false]);
+                        else callback([false,false,false,false,false]);
+                    });
+                },
+                saveProgress: async (dateStr, data) => {
+                    if (!db || !currentUser) return;
+                    const docPath = doc(db, 'users', currentUser.uid, 'daily_reads', dateStr);
+                    await setDoc(docPath, { prayers: data, lastUpdated: new Date().toISOString() }, { merge: true });
+                }
+            };
+
+        } catch (e) {
+            console.error("Firebase Init Error:", e);
+            alert("حدث خطأ في الاتصال بقاعدة البيانات. راجع وحدة التحكم (Console).");
+        }
+
+        function translateAuthError(code) {
+            const errors = {
+                'auth/invalid-email': 'البريد غير صحيح',
+                'auth/user-not-found': 'المستخدم غير موجود',
+                'auth/wrong-password': 'كلمة المرور خاطئة',
+                'auth/email-already-in-use': 'البريد مستخدم بالفعل',
+                'auth/weak-password': 'كلمة المرور ضعيفة (6 أحرف على الأقل)'
+            };
+            return errors[code] || ('حدث خطأ: ' + code);
+        }
+    </script>
+
+    <!-- Auth Screen -->
+    <div id="authScreen" class="w-full max-w-md p-8 glass-card rounded-3xl shadow-2xl relative overflow-hidden">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-emerald-800 dark:text-emerald-300 mb-2">مرحباً بك 👋</h1>
+            <p class="text-sm text-gray-500">سجل دخولك لحفظ الورد في "MuslimHabit"</p>
+        </div>
+        <div class="flex bg-gray-100 dark:bg-emerald-900/50 p-1 rounded-xl mb-6">
+            <button onclick="switchAuthMode('login')" id="tabLogin" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow text-emerald-700 transition-all">دخول</button>
+            <button onclick="switchAuthMode('register')" id="tabRegister" class="flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-emerald-600 transition-all">حساب جديد</button>
+        </div>
+        <form onsubmit="handleAuth(event)" class="space-y-4">
+            <input type="email" id="email" required class="auth-input" placeholder="البريد الإلكتروني">
+            <input type="password" id="password" required class="auth-input" placeholder="كلمة المرور">
+            <div id="authError" class="hidden text-xs text-red-500 bg-red-50 p-2 rounded text-center font-bold"></div>
+            <button type="submit" id="submitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold shadow-lg transition-all transform active:scale-95">تسجيل الدخول</button>
+        </form>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden w-full max-w-md glass-card rounded-3xl p-6 relative overflow-hidden bg-white/90 dark:bg-emerald-900/50 shadow-2xl border border-white/20">
+        <!-- Top Bar -->
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-lg">👤</div>
+                <div class="flex flex-col">
+                    <span id="userEmailDisplay" class="text-[10px] text-gray-500 font-mono">...</span>
+                    <div class="flex items-center gap-1">
+                        <span id="cloudIndicator" class="cloud-status status-offline"></span>
+                        <span id="cloudText" class="text-[9px] text-gray-400">غير متصل</span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="logoutUser()" class="text-xs text-red-500 bg-red-50 px-3 py-1 rounded hover:bg-red-100 transition">خروج</button>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex justify-between items-center mb-4 bg-gray-50 dark:bg-white/5 p-2 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div class="flex gap-2">
+                <button onclick="toggleSound(event)" id="soundBtn" class="bg-white dark:bg-emerald-800 w-8 h-8 rounded-full shadow text-xs flex items-center justify-center transition hover:scale-110">🔊</button>
+                <button onclick="toggleDarkMode()" class="bg-white dark:bg-emerald-800 w-8 h-8 rounded-full shadow text-xs flex items-center justify-center transition hover:scale-110">🌙</button>
+            </div>
+            <button onclick="toggleSimulator()" class="text-[10px] text-emerald-600 bg-white px-3 py-1.5 rounded-full shadow-sm hover:bg-emerald-50 transition">⏱ المحاكاة</button>
+        </div>
+
+        <!-- Date & Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-emerald-800 dark:text-emerald-300">وِرد اليوم</h1>
+            <p id="dateDisplay" class="text-sm text-gray-500 mt-1">...</p>
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3 overflow-hidden">
+                <div id="dailyProgressBar" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Verse Range -->
+        <div class="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-xl p-0 mb-6 text-white shadow-lg relative overflow-hidden min-h-[90px] flex flex-col transition-all hover:shadow-emerald-500/30 hover:scale-[1.01]">
+            <div id="apiLoader" class="loader-line hidden z-30"></div>
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10"></div>
+            <div class="p-4 flex-grow flex flex-col justify-center relative z-10">
+                <div class="flex justify-between items-start w-full">
+                    <div class="text-right w-1/2 border-l border-white/20 pl-3">
+                        <span class="text-[10px] text-emerald-200">البداية (الفجر)</span>
+                        <p id="startVerseInfo" class="font-bold quran-font text-sm leading-snug">--</p>
+                    </div>
+                    <div class="text-left w-1/2 pr-3">
+                        <span class="text-[10px] text-emerald-200">النهاية (العشاء)</span>
+                        <p id="endVerseInfo" class="font-bold quran-font text-sm leading-snug">--</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prayers List -->
+        <div class="space-y-3 relative z-10" id="prayersList"></div>
+
+        <!-- Reset Button -->
+        <button onclick="openResetModal()" class="block mx-auto mt-6 text-[10px] text-gray-400 underline hover:text-red-500 transition">إعادة ضبط اليوم</button>
+
+        <!-- Simulator -->
+        <div id="simulatorPanel" class="hidden mt-4 p-3 bg-yellow-50 rounded-xl border border-yellow-100 text-center">
+            <input type="date" id="simulatedDate" class="text-xs p-1 rounded border" onchange="manualUpdate()">
+            <button onclick="resetToToday()" class="text-[10px] text-red-500 block mx-auto mt-1">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="resetModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+        <div class="bg-white dark:bg-emerald-900 rounded-2xl p-6 shadow-xl w-full max-w-sm border border-emerald-100 dark:border-emerald-700">
+            <div class="text-center mb-4">
+                <div class="w-10 h-10 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-2 text-xl">⚠️</div>
+                <h3 class="text-lg font-bold text-gray-800 dark:text-white">تأكيد الإعادة</h3>
+                <p class="text-xs text-gray-500">سيتم مسح بيانات اليوم من السحابة</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="confirmReset()" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl text-sm font-bold transition">نعم</button>
+                <button onclick="closeResetModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-xl text-sm font-bold transition">لا</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logic Script -->
+    <script>
+        // --- Auth Logic ---
+        let currentAuthMode = 'login';
+        function switchAuthMode(mode) {
+            currentAuthMode = mode;
+            document.getElementById('authError').classList.add('hidden');
+            const loginBtn = document.getElementById('tabLogin');
+            const regBtn = document.getElementById('tabRegister');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (mode === 'login') {
+                loginBtn.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow text-emerald-700 transition-all";
+                regBtn.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-emerald-600 transition-all";
+                submitBtn.textContent = "تسجيل الدخول";
+            } else {
+                regBtn.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow text-emerald-700 transition-all";
+                loginBtn.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-emerald-600 transition-all";
+                submitBtn.textContent = "إنشاء حساب جديد";
+            }
+        }
+
+        async function handleAuth(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('authError');
+            const btn = document.getElementById('submitBtn');
+            
+            errorDiv.classList.add('hidden');
+            btn.disabled = true; btn.textContent = "...";
+
+            try {
+                if(!window.authAPI) throw "جاري تهيئة الاتصال... انتظر لحظة";
+                if(currentAuthMode === 'login') await window.authAPI.login(email, password);
+                else await window.authAPI.register(email, password);
+            } catch(err) {
+                errorDiv.textContent = err;
+                errorDiv.classList.remove('hidden');
+                btn.disabled = false;
+                btn.textContent = currentAuthMode === 'login' ? "تسجيل الدخول" : "إنشاء حساب";
+            }
+        }
+
+        function logoutUser() { if(confirm("هل تريد تسجيل الخروج؟")) window.authAPI.logout(); }
+
+        // --- Core App Logic ---
+        const START_DATE_STR = '2026-01-01';
+        const PAGES_PER_DAY = 5;
+        const QURAN_PAGES = 604;
+        let isSimulating = false, simulatedDateObj = new Date(), soundEnabled = true;
+        let currentPrayersState = [false,false,false,false,false];
+        const prayers = [{id:0,name:"الفجر",icon:"🌅"},{id:1,name:"الظهر",icon:"☀️"},{id:2,name:"العصر",icon:"⛅"},{id:3,name:"المغرب",icon:"🌇"},{id:4,name:"العشاء",icon:"🌌"}];
+
+        // Init
+        window.addEventListener('firebase-ready', () => { updateUI(false); });
+        
+        // Helpers
+        function getStorageKey() {
+            const now = isSimulating ? new Date(simulatedDateObj) : new Date();
+            return now.toISOString().split('T')[0];
+        }
+        function loadPrayersData(dateStr) {
+            if(window.firebaseAPI) {
+                window.firebaseAPI.subscribeToDate(dateStr, (data) => {
+                    currentPrayersState = data;
+                    renderPrayersList();
+                });
+            }
+        }
+        
+        // --- Audio Logic ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        function initAudioContext() { if (!audioCtx) audioCtx = new AudioContext(); return audioCtx; }
+        function unlockAudioContext() {
+            const ctx = initAudioContext();
+            if (ctx.state === 'suspended') {
+                ctx.resume().then(() => {
+                    const unlocker = document.getElementById('audioUnlocker');
+                    if (unlocker) unlocker.style.display = 'none';
+                });
+            }
+        }
+        ['click', 'touchstart', 'touchend'].forEach(event => document.body.addEventListener(event, unlockAudioContext, { once: true }));
+
+        function playPopSound() {
+            if (!soundEnabled) return;
+            const ctx = initAudioContext();
+            if (ctx.state === 'suspended') ctx.resume();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.frequency.setValueAtTime(400 + Math.random() * 200, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.1);
+        }
+        function playClickSound() {
+            if (!soundEnabled) return;
+            const ctx = initAudioContext();
+            if (ctx.state === 'suspended') ctx.resume();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(600, ctx.currentTime);
+            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.1);
+        }
+
+        function triggerCelebration() {
+            const container = document.body;
+            if(soundEnabled) { [0, 150, 300, 450, 600, 800].forEach(t => setTimeout(() => playPopSound(), t)); }
+            for (let i = 0; i < 40; i++) {
+                const el = document.createElement('div');
+                el.innerText = '🎈'; el.className = 'balloon';
+                el.style.filter = `hue-rotate(${Math.floor(Math.random() * 360)}deg)`;
+                el.style.setProperty('--end-x', `${(Math.random() - 0.5) * 120}vw`);
+                el.style.setProperty('--rot', `${(Math.random() - 0.5) * 45}deg`);
+                el.style.fontSize = (Math.random() * 30 + 30) + 'px';
+                el.style.animationDuration = (Math.random() * 2 + 3) + 's';
+                container.appendChild(el);
+                setTimeout(() => { el.remove(); }, 6000);
+            }
+        }
+
+        function toggleSound(e) {
+            if(e) e.stopPropagation();
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
+            if(soundEnabled) playClickSound();
+        }
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            document.getElementById('themeIcon').textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+        }
+        function toggleSimulator() { document.getElementById('simulatorPanel').classList.toggle('hidden'); }
+        function manualUpdate() {
+            const val = document.getElementById('simulatedDate').value;
+            if(val) { isSimulating = true; simulatedDateObj = new Date(val); document.getElementById('simulationBadge').classList.remove('hidden'); updateUI(true); }
+        }
+        function resetToToday() { 
+            isSimulating = false; 
+            document.getElementById('simulatedDate').value = ''; 
+            document.getElementById('simulationBadge').classList.add('hidden'); 
+            updateUI(true); 
+        }
+        function openResetModal() { document.getElementById('resetModal').classList.remove('hidden'); }
+        function closeResetModal() { document.getElementById('resetModal').classList.add('hidden'); }
+        function confirmReset() {
+            if (window.firebaseAPI) window.firebaseAPI.saveProgress(getStorageKey(), [false,false,false,false,false]);
+            closeResetModal();
+        }
+        function openQuranPage(pageNum) { window.open(`https://quran.com/page/${pageNum}`, '_blank'); }
+
+        // --- Render UI ---
+        function togglePrayer(index) {
+            unlockAudioContext();
+            const dateStr = getStorageKey();
+            const newData = [...currentPrayersState];
+            newData[index] = !newData[index];
+            currentPrayersState = newData; 
+            renderPrayersList();
+            if (newData[index]) {
+                if (newData.every(Boolean)) triggerCelebration();
+                else playClickSound();
+            }
+            if (window.firebaseAPI) window.firebaseAPI.saveProgress(dateStr, newData);
+        }
+
+        function renderPrayersList() {
+            const now = isSimulating ? new Date(simulatedDateObj) : new Date();
+            now.setHours(0,0,0,0);
+            const startDate = new Date(START_DATE_STR);
+            startDate.setHours(0,0,0,0);
+            const diffTime = now - startDate;
+            
+            if (diffTime < 0) { document.getElementById('prayersList').innerHTML = "<p class='text-center text-sm'>لم يبدأ بعد</p>"; return; }
+            
+            const dayIndex = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const globalStartPage = (dayIndex * PAGES_PER_DAY) + 1;
+            const listContainer = document.getElementById('prayersList');
+            listContainer.innerHTML = '';
+            let completedCount = 0;
+
+            prayers.forEach((prayer, index) => {
+                const isChecked = currentPrayersState[index];
+                if (isChecked) completedCount++;
+                let pageNumDisplay = ((globalStartPage + index - 1) % QURAN_PAGES) + 1;
+
+                const item = document.createElement('div');
+                item.innerHTML = `
+                    <label class="cursor-pointer block relative group">
+                        <input type="checkbox" class="prayer-checkbox hidden" onchange="togglePrayer(${index})" ${isChecked ? 'checked' : ''}>
+                        <div class="prayer-item flex items-center justify-between p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-emerald-900/40 hover:border-emerald-300 transition-all shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="icon-box w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-800 flex items-center justify-center text-lg transition-colors">${prayer.icon}</div>
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-sm text-gray-800 dark:text-gray-200">${prayer.name}</span>
+                                    <span class="text-[10px] text-gray-400 page-num transition-colors">صفحة <strong class="text-emerald-600 dark:text-emerald-400 font-serif">${pageNumDisplay}</strong></span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="event.preventDefault(); openQuranPage(${pageNumDisplay})" class="text-[10px] bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded hover:bg-emerald-100 text-gray-600 dark:text-gray-300 transition z-20">📖</button>
+                                <div class="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center">${isChecked ? '✓' : ''}</div>
+                            </div>
+                        </div>
+                    </label>
+                `;
+                listContainer.appendChild(item);
+            });
+
+            const percentage = (completedCount / 5) * 100;
+            document.getElementById('dailyProgressBar').style.width = `${percentage}%`;
+            document.getElementById('progressLabel').textContent = `${completedCount} من 5 صلوات`;
+        }
+
+        // --- API & Verse ---
+        let pageCache = {};
+        try { if(localStorage.getItem('quran_cache')) pageCache = JSON.parse(localStorage.getItem('quran_cache')); } catch(e){}
+
+        async function fetchPageDetails(pageNum) {
+            if (pageCache[pageNum]) return pageCache[pageNum];
+            if (pageNum <= 5) return { start: {n: "الفاتحة/البقرة", a: "..." }, end: {n: "...", a: "..."} };
+            try {
+                const response = await fetch(`https://api.alquran.cloud/v1/page/${pageNum}/quran-uthmani`);
+                const data = await response.json();
+                if (data.code === 200) {
+                    const ayahs = data.data.ayahs;
+                    const info = { start: { n: ayahs[0].surah.name, a: ayahs[0].numberInSurah }, end: { n: ayahs[ayahs.length - 1].surah.name, a: ayahs[ayahs.length - 1].numberInSurah } };
+                    pageCache[pageNum] = info;
+                    localStorage.setItem('quran_cache', JSON.stringify(pageCache));
+                    return info;
+                }
+            } catch (e) {}
+            return { start: {n: "...", a: "?"}, end: {n: "...", a: "?"} };
+        }
+
+        async function updateVerseRange(startP, endP) {
+            const startEl = document.getElementById('startVerseInfo');
+            const endEl = document.getElementById('endVerseInfo');
+            const loader = document.getElementById('apiLoader');
+            if(!pageCache[startP]) loader.classList.remove('hidden');
+            const sInfo = await fetchPageDetails(startP);
+            const eInfo = await fetchPageDetails(endP);
+            startEl.textContent = `${sInfo.start.n} - ${sInfo.start.a}`;
+            endEl.textContent = `${eInfo.end.n} - ${eInfo.end.a}`;
+            loader.classList.add('hidden');
+        }
+
+        function updateUI(shouldFetchApi = true) {
+            const now = isSimulating ? new Date(simulatedDateObj) : new Date();
+            now.setHours(0,0,0,0);
+            const startDate = new Date(START_DATE_STR);
+            startDate.setHours(0,0,0,0);
+            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('ar-KW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+            const diffTime = now - startDate;
+            if (diffTime >= 0) {
+                const dayIndex = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                const globalStartPage = (dayIndex * PAGES_PER_DAY) + 1;
+                const todayStartPage = ((globalStartPage - 1) % QURAN_PAGES) + 1;
+                const todayEndPage = ((globalStartPage + 4 - 1) % QURAN_PAGES) + 1;
+                if(shouldFetchApi) updateVerseRange(todayStartPage, todayEndPage);
+                loadPrayersData(getStorageKey());
+            }
+        }
+    </script>
+</body>
+</html>
