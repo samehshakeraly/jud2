@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>متابع الورد (نسخة التشخيص)</title>
+    <title>متابع الورد (إصلاح الأخطاء)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -26,38 +26,29 @@
         body { font-family: 'Cairo', sans-serif; transition: background-color 0.5s ease; overflow-x: hidden; touch-action: manipulation; }
         .quran-font { font-family: 'Amiri', serif; }
         .glass-card { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        
         .prayer-checkbox:checked + div { background-color: #10b981; border-color: #059669; color: white; transform: scale(1.02); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
         .prayer-checkbox:checked + div .page-num { color: #d1fae5; }
         .prayer-checkbox:checked + div .icon-box { background-color: rgba(255,255,255,0.2); color: white; }
         .auth-input { @apply w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all bg-white/50 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-white; }
+        
         .cloud-status { width: 8px; height: 8px; border-radius: 50%; display: inline-block; transition: all 0.3s; }
         .status-online { background-color: #10b981; box-shadow: 0 0 8px #10b981; }
         .status-offline { background-color: #ef4444; }
+
         .loader-line { height: 2px; width: 100%; position: relative; overflow: hidden; background-color: rgba(255, 255, 255, 0.2); }
         .loader-line:before { display: block; position: absolute; content: ""; left: -200px; width: 200px; height: 2px; background-color: #ffffff; animation: loading 2s linear infinite; }
         @keyframes loading { from {left: -200px; width: 30%;} 50% {width: 30%;} 70% {width: 70%;} 80% { left: 50%;} 95% {left: 120%;} to {left: 100%;} }
+
         .balloon { position: fixed; top: 50%; left: 50%; z-index: 9999; pointer-events: none; line-height: 1; transform: translate(-50%, -50%) scale(0); animation: balloon-float ease-out forwards; }
-        @keyframes balloon-float { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 10% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(var(--end-x), -120vh) rotate(var(--rot)) scale(1.2); opacity: 0.8; } }
-        
-        /* Debug Error Box */
-        #error-console { display: none; position: fixed; top: 0; left: 0; width: 100%; background: #ef4444; color: white; padding: 10px; z-index: 100000; font-size: 12px; direction: ltr; text-align: left; }
+        @keyframes balloon-float { 
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 
+            10% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 
+            100% { transform: translate(var(--end-x), -120vh) rotate(var(--rot)) scale(1.2); opacity: 0.8; } 
+        }
     </style>
 </head>
 <body id="bodyEl" class="min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-500 bg-[#f0fdf4] dark:bg-emerald-950 text-slate-800 dark:text-slate-100">
-
-    <!-- Error Display For Debugging -->
-    <div id="error-console"></div>
-    <script>
-        window.onerror = function(msg, url, line, col, error) {
-            var extra = !col ? '' : '\ncolumn: ' + col;
-            extra += !error ? '' : '\nerror: ' + error;
-            var errHtml = "Error: " + msg + "\nurl: " + url + "\nline: " + line + extra;
-            document.getElementById('error-console').style.display = 'block';
-            document.getElementById('error-console').innerText = errHtml;
-            alert("حدث خطأ برمجي: " + msg);
-            return false;
-        };
-    </script>
 
     <div id="audioUnlocker" class="fixed inset-0 z-[99999] opacity-0" style="display: none;" onclick="unlockAudioContext()"></div>
 
@@ -66,9 +57,7 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, doc, onSnapshot, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-        // =======================================================
-        // 🔴🔴 هام: تأكد من أن مفاتيحك مكتوبة بشكل صحيح هنا 🔴🔴
-        // =======================================================
+        // --- إعدادات مشروعك ---
         const firebaseConfig = {
             apiKey: "AIzaSyBSMaNzhzKCtfQcL7kyCoz6CWmQM4pMsds",
             authDomain: "muslimhabit-b21fd.firebaseapp.com",
@@ -78,7 +67,6 @@
             appId: "1:250434152968:web:3b9ed463db1c0e873a3fbd",
             measurementId: "G-9BR2F65RGC"
         };
-        // =======================================================
 
         let app, auth, db;
         let currentUser = null;
@@ -95,16 +83,24 @@
                 const mainApp = document.getElementById('mainApp');
                 
                 if (user) {
-                    authScreen.classList.add('hidden');
-                    mainApp.classList.remove('hidden');
-                    document.getElementById('userEmailDisplay').textContent = user.email;
-                    document.getElementById('cloudIndicator').classList.add('status-online');
-                    document.getElementById('cloudIndicator').classList.remove('status-offline');
-                    document.getElementById('cloudText').textContent = "متصل";
+                    if(authScreen) authScreen.classList.add('hidden');
+                    if(mainApp) mainApp.classList.remove('hidden');
+                    const emailEl = document.getElementById('userEmailDisplay');
+                    if(emailEl) emailEl.textContent = user.email;
+                    
+                    const indicator = document.getElementById('cloudIndicator');
+                    if(indicator) {
+                        indicator.classList.add('status-online');
+                        indicator.classList.remove('status-offline');
+                    }
+                    
+                    const cloudTxt = document.getElementById('cloudText');
+                    if(cloudTxt) cloudTxt.textContent = "متصل";
+                    
                     window.dispatchEvent(new Event('firebase-ready'));
                 } else {
-                    authScreen.classList.remove('hidden');
-                    mainApp.classList.add('hidden');
+                    if(authScreen) authScreen.classList.remove('hidden');
+                    if(mainApp) mainApp.classList.add('hidden');
                 }
             });
 
@@ -142,7 +138,7 @@
 
         } catch (e) {
             console.error("Firebase Init Error:", e);
-            throw new Error("خطأ في تهيئة Firebase: " + e.message);
+            alert("خطأ في الاتصال: " + e.message);
         }
 
         function translateAuthError(code) {
@@ -151,7 +147,8 @@
                 'auth/user-not-found': 'المستخدم غير موجود',
                 'auth/wrong-password': 'كلمة المرور خاطئة',
                 'auth/email-already-in-use': 'البريد مستخدم بالفعل',
-                'auth/weak-password': 'كلمة المرور ضعيفة (6 أحرف على الأقل)'
+                'auth/weak-password': 'كلمة المرور ضعيفة (6 أحرف على الأقل)',
+                'auth/operation-not-allowed': 'يرجى تفعيل "Email/Password" في إعدادات Firebase'
             };
             return errors[code] || ('خطأ: ' + code);
         }
@@ -204,10 +201,12 @@
         <!-- Date & Header -->
         <div class="text-center mb-6">
             <h1 class="text-2xl font-bold text-emerald-800 dark:text-emerald-300">وِرد اليوم</h1>
-            <p id="dateDisplay" class="text-sm text-gray-500 mt-1">جاري التحميل...</p>
+            <p id="dateDisplay" class="text-sm text-gray-500 mt-1">...</p>
             <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3 overflow-hidden">
                 <div id="dailyProgressBar" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
             </div>
+            <!-- Added ID for progress label -->
+            <p id="progressLabel" class="text-xs text-gray-500 mt-2">0 من 5 صلوات</p>
         </div>
 
         <!-- Verse Range -->
@@ -229,9 +228,7 @@
         </div>
 
         <!-- Prayers List -->
-        <div class="space-y-3 relative z-10" id="prayersList">
-            <div class="text-center text-gray-400 text-sm py-4">جاري تحميل البيانات...</div>
-        </div>
+        <div class="space-y-3 relative z-10" id="prayersList"></div>
 
         <!-- Reset Button -->
         <button onclick="openResetModal()" class="block mx-auto mt-6 text-[10px] text-gray-400 underline hover:text-red-500 transition">إعادة ضبط اليوم</button>
@@ -447,6 +444,8 @@
             const dayIndex = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             const globalStartPage = (dayIndex * PAGES_PER_DAY) + 1;
             const listContainer = document.getElementById('prayersList');
+            if(!listContainer) return; // حماية إضافية
+            
             listContainer.innerHTML = '';
             let completedCount = 0;
 
@@ -478,12 +477,16 @@
             });
 
             const percentage = (completedCount / 5) * 100;
-            document.getElementById('dailyProgressBar').style.width = `${percentage}%`;
-            document.getElementById('progressLabel').textContent = `${completedCount} من 5 صلوات مكتملة`;
-            
             const bar = document.getElementById('dailyProgressBar');
-            if(completedCount === 5) { bar.classList.add('bg-gold-500'); bar.classList.remove('bg-emerald-500'); }
-            else { bar.classList.add('bg-emerald-500'); bar.classList.remove('bg-gold-500'); }
+            if(bar) bar.style.width = `${percentage}%`;
+            
+            const label = document.getElementById('progressLabel');
+            if(label) label.textContent = `${completedCount} من 5 صلوات مكتملة`;
+            
+            if(bar) {
+                if(completedCount === 5) { bar.classList.add('bg-gold-500'); bar.classList.remove('bg-emerald-500'); }
+                else { bar.classList.add('bg-emerald-500'); bar.classList.remove('bg-gold-500'); }
+            }
         }
 
         // --- API & Verse ---
@@ -511,12 +514,14 @@
             const startEl = document.getElementById('startVerseInfo');
             const endEl = document.getElementById('endVerseInfo');
             const loader = document.getElementById('apiLoader');
-            if(!pageCache[startP]) loader.classList.remove('hidden');
+            if(!pageCache[startP] && loader) loader.classList.remove('hidden');
+            
             const sInfo = await fetchPageDetails(startP);
             const eInfo = await fetchPageDetails(endP);
-            startEl.textContent = `${sInfo.start.n} - ${sInfo.start.a}`;
-            endEl.textContent = `${eInfo.end.n} - ${eInfo.end.a}`;
-            loader.classList.add('hidden');
+            
+            if(startEl) startEl.textContent = `${sInfo.start.n} - ${sInfo.start.a}`;
+            if(endEl) endEl.textContent = `${eInfo.end.n} - ${eInfo.end.a}`;
+            if(loader) loader.classList.add('hidden');
         }
 
         function updateUI(shouldFetchApi = true) {
@@ -524,7 +529,9 @@
             now.setHours(0,0,0,0);
             const startDate = new Date(START_DATE_STR);
             startDate.setHours(0,0,0,0);
-            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('ar-KW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+            const dateEl = document.getElementById('dateDisplay');
+            if(dateEl) dateEl.textContent = now.toLocaleDateString('ar-KW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
             const diffTime = now - startDate;
             if (diffTime >= 0) {
                 const dayIndex = Math.floor(diffTime / (1000 * 60 * 60 * 24));
