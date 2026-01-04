@@ -2,115 +2,432 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>متابع الورد - Muslim Habit</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* --- نفس التصميم الجميل تماماً --- */
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { background-color: #f0faf9; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
-        
-        .card { 
-            background: linear-gradient(135deg, #ffffff 0%, #f7fcfc 100%); 
-            width: 90%; max-width: 400px; 
-            border-radius: 30px; padding: 30px; 
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); 
-            position: relative; text-align: center; 
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { emerald: { 950: '#022c22' }, gold: { 500: '#d4af37' } },
+                    fontFamily: { sans: ['Cairo', 'sans-serif'], serif: ['Amiri', 'serif'] }
+                }
+            }
         }
-        
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* إعدادات عامة */
+        body { font-family: 'Cairo', sans-serif; background-color: #f0faf9; color: #333; transition: background-color 0.5s ease; }
+        .dark body { background-color: #022c22; }
+
+        /* --- تنسيقات شاشة الدخول (التصميم الجديد) --- */
+        .login-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f7fcfc 100%);
+            width: 90%; max-width: 400px;
+            border-radius: 30px; padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            position: relative; text-align: center;
+            margin: auto;
+        }
+
         .lang-icon { position: absolute; top: 25px; left: 25px; width: 35px; height: 35px; border-radius: 50%; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; color: #10a37f; cursor: pointer; background: white; }
         .logo-container { width: 80px; height: 80px; background: #fff; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 20px auto 10px; }
-        h1 { color: #1f2937; font-size: 24px; font-weight: 700; margin-bottom: 2px; }
-        .subtitle { color: #10b981; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 30px; font-weight: 600; }
         
+        .login-title { color: #1f2937; font-size: 24px; font-weight: 700; margin-bottom: 2px; }
+        .login-subtitle { color: #10b981; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 30px; font-weight: 600; }
+
+        /* التبويبات */
         .tabs { display: flex; background: #f3f4f6; padding: 5px; border-radius: 15px; margin-bottom: 25px; }
         .tab { flex: 1; padding: 10px; border: none; background: transparent; cursor: pointer; border-radius: 12px; font-weight: 600; font-size: 14px; color: #6b7280; transition: all 0.3s ease; }
         .tab.active { background: #fff; color: #1f2937; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        
+
+        /* حقول الإدخال */
         .input-group { position: relative; margin-bottom: 15px; }
-        
-        /* إصلاح المحاذاة */
         .input-group input { 
-            width: 100%; 
-            padding: 15px 50px 15px 15px; /* يمين 50 للأيقونة */
-            border: none; 
-            background: #f9fafb; 
-            border-radius: 12px; 
-            font-size: 14px; 
-            outline: none; 
-            text-align: right; /* محاذاة لليمين */
-            color: #374151; 
-            transition: background 0.3s; 
+            width: 100%; padding: 15px 50px 15px 15px; border: none; background: #f9fafb; 
+            border-radius: 12px; font-size: 14px; outline: none; text-align: right; 
+            color: #374151; transition: background 0.3s; 
         }
         .input-group input:focus { background: #fff; box-shadow: 0 0 0 2px #10b9811a; }
-        
-        .input-icon { 
-            position: absolute; 
-            top: 50%; 
-            right: 15px; 
-            transform: translateY(-50%); 
-            color: #9ca3af; 
-            font-size: 18px; 
-            pointer-events: none; /* مهم جداً: يمنع الأيقونة من تعطيل الكتابة */
-        }
-        
+        .input-icon { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); color: #9ca3af; font-size: 18px; pointer-events: none; }
+
+        /* زر الدخول */
         .submit-btn { 
-            width: 100%; 
-            padding: 15px; 
-            background-color: #059669; 
-            color: white; 
-            border: none; 
-            border-radius: 15px; 
-            font-size: 16px; 
-            font-weight: 600; 
-            cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; gap: 10px; 
-            margin-top: 20px; margin-bottom: 20px; 
-            transition: all 0.3s;
-            position: relative; /* لضمان ظهور الزر فوق أي عنصر آخر */
-            z-index: 10; 
+            width: 100%; padding: 15px; background-color: #059669; color: white; 
+            border: none; border-radius: 15px; font-size: 16px; font-weight: 600; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; 
+            margin-top: 20px; margin-bottom: 20px; transition: all 0.3s; 
         }
-        .submit-btn:hover { background-color: #047857; }
-        .footer-text { color: #9ca3af; font-size: 11px; line-height: 1.5; }
+        .submit-btn:hover { background-color: #047857; transform: translateY(-1px); }
+        .submit-btn:disabled { opacity: 0.7; cursor: wait; }
+
+        /* رسالة الخطأ */
+        .error-msg { font-size: 12px; color: #ef4444; background: #fef2f2; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: none; }
+
+        /* --- تنسيقات التطبيق الداخلي (من الكود القديم) --- */
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15); }
+        .dark .glass-card { background: rgba(6, 78, 59, 0.6); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .quran-font { font-family: 'Amiri', serif; }
+        
+        /* عناصر مساعدة */
+        .hidden { display: none !important; }
+        .balloon { position: fixed; top: 50%; left: 50%; z-index: 9999; pointer-events: none; animation: balloon-float ease-out forwards; }
+        @keyframes balloon-float { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 100% { transform: translate(var(--end-x), -120vh) rotate(var(--rot)) scale(1.2); opacity: 0.8; } }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
 
-    <div class="card">
-        <div class="lang-icon">
+    <div id="authScreen" class="login-card">
+        <div class="lang-icon" onclick="window.toggleLanguage()">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
         </div>
 
         <div class="logo-container">🕌</div>
-        <h1>متابع الورد</h1>
-        <div class="subtitle">MUSLIM HABIT</div>
+        <h1 class="login-title" id="txt_appTitle">متابع الورد</h1>
+        <div class="login-subtitle" id="txt_appSubtitle">MUSLIM HABIT</div>
 
         <div class="tabs">
-            <button class="tab">حساب جديد</button>
-            <button class="tab active">دخول</button>
+            <button class="tab" id="tabRegister" onclick="window.switchAuthMode('register')">حساب جديد</button>
+            <button class="tab active" id="tabLogin" onclick="window.switchAuthMode('login')">دخول</button>
         </div>
 
-        <form action="quran.html">
+        <form onsubmit="window.handleAuth(event)">
             <div class="input-group">
                 <span class="input-icon">✉️</span>
-                <input type="email" placeholder="البريد الإلكتروني" required>
+                <input type="email" id="email" placeholder="البريد الإلكتروني" dir="rtl" required>
             </div>
 
             <div class="input-group">
                 <span class="input-icon">🔒</span>
-                <input type="password" placeholder="كلمة المرور" required>
+                <input type="password" id="password" placeholder="كلمة المرور" dir="rtl" required>
             </div>
 
-            <button type="submit" class="submit-btn">
-                <span>دخول</span>
+            <div id="authError" class="error-msg">⚠️ <span id="authErrorText"></span></div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <span id="btnText">دخول</span>
                 <span>←</span>
             </button>
         </form>
 
-        <div class="footer-text">
+        <div class="footer-text" style="color:#9ca3af; font-size:11px; margin-top:10px;">
             بمتابعتك فإنك توافق على الالتزام بالورد اليومي
         </div>
     </div>
 
+    <div id="mainApp" class="hidden w-full max-w-md glass-card rounded-3xl p-6 relative overflow-hidden bg-white/90 dark:bg-emerald-900/50 shadow-2xl border border-white/20">
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-lg">👤</div>
+                <div class="flex flex-col">
+                    <span id="userEmailDisplay" class="text-[10px] text-gray-500 font-mono">...</span>
+                    <div class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span class="text-[9px] text-gray-400">متصل</span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="window.logoutUser()" class="text-xs text-red-500 bg-red-50 px-3 py-1 rounded hover:bg-red-100 transition">خروج</button>
+        </div>
+
+        <div class="flex justify-between items-center mb-4 bg-gray-50 dark:bg-white/5 p-2 rounded-xl">
+            <div class="flex gap-2">
+                <button onclick="window.toggleDarkMode()" class="bg-white w-8 h-8 rounded-full shadow text-xs flex items-center justify-center">🌙</button>
+            </div>
+            <button onclick="window.toggleSimulator()" class="text-[10px] text-emerald-600 bg-white px-3 py-1.5 rounded-full shadow-sm">⏱ المحاكاة</button>
+        </div>
+
+        <div class="text-center mb-6 relative">
+            <span id="simulationBadge" class="hidden absolute top-0 left-0 bg-yellow-400 text-yellow-900 text-[9px] px-2 py-0.5 rounded-full font-bold">محاكاة</span>
+            <h1 class="text-2xl font-bold text-emerald-800 dark:text-emerald-300">وِرد اليوم</h1>
+            <p id="dateDisplay" class="text-sm text-gray-500 mt-1">...</p>
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3 overflow-hidden">
+                <div id="dailyProgressBar" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p id="progressLabel" class="text-xs text-gray-500 mt-2">0 من 5 صلوات</p>
+        </div>
+
+        <div class="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-xl p-4 mb-6 text-white shadow-lg relative overflow-hidden flex justify-between items-center">
+            <div class="text-right w-1/2 border-l border-white/20 pl-3">
+                <span class="text-[10px] text-emerald-200">البداية (الفجر)</span>
+                <p id="startVerseInfo" class="font-bold quran-font text-sm">--</p>
+            </div>
+            <div class="text-left w-1/2 pl-3">
+                <span class="text-[10px] text-emerald-200">النهاية (العشاء)</span>
+                <p id="endVerseInfo" class="font-bold quran-font text-sm">--</p>
+            </div>
+        </div>
+
+        <div class="space-y-3" id="prayersList"></div>
+
+        <div id="simulatorPanel" class="hidden mt-4 p-3 bg-yellow-50 rounded-xl border border-yellow-100 text-center">
+            <input type="date" id="simulatedDate" class="text-xs p-1 rounded border" onchange="window.manualUpdate()">
+            <button onclick="window.resetToToday()" class="text-[10px] text-red-500 block mx-auto mt-1">إلغاء</button>
+        </div>
+    </div>
+
+    <script>
+        // --- إعدادات اللغة ---
+        const translations = {
+            ar: { loginBtn: "دخول", registerBtn: "حساب جديد", waiting: "جاري التحميل..." },
+            en: { loginBtn: "Login", registerBtn: "Register", waiting: "Loading..." }
+        };
+        let currentLang = 'ar';
+
+        // --- منطق الواجهة (تبديل التبويبات) ---
+        window.currentAuthMode = 'login';
+        window.switchAuthMode = function(mode) {
+            window.currentAuthMode = mode;
+            const btnText = document.getElementById('btnText');
+            const tabLogin = document.getElementById('tabLogin');
+            const tabRegister = document.getElementById('tabRegister');
+
+            if(mode === 'login') {
+                tabLogin.classList.add('active');
+                tabRegister.classList.remove('active');
+                btnText.textContent = translations[currentLang].loginBtn;
+            } else {
+                tabRegister.classList.add('active');
+                tabLogin.classList.remove('active');
+                btnText.textContent = translations[currentLang].registerBtn;
+            }
+        };
+
+        // --- الثوابت والمتغيرات العامة ---
+        const START_DATE_STR = '2026-01-01'; 
+        const PAGES_PER_DAY = 5;
+        const QURAN_PAGES = 604;
+        const prayerIcons = ["🌅", "☀️", "⛅", "🌇", "🌌"];
+        const prayerNames = ["الفجر", "الظهر", "العصر", "المغرب", "العشاء"];
+        let isSimulating = false, simulatedDateObj = new Date();
+        let currentPrayersState = [false,false,false,false,false];
+        let pageCache = {};
+
+        // --- دوال مساعدة ---
+        window.safeSetText = function(id, text) { const el = document.getElementById(id); if (el) el.textContent = text; };
+        function getStorageKey() {
+            const now = isSimulating ? new Date(simulatedDateObj) : new Date();
+            return now.toISOString().split('T')[0];
+        }
+
+        // --- منطق تسجيل الدخول (Handle Auth) ---
+        window.handleAuth = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const errorDiv = document.getElementById('authError');
+            
+            errorDiv.style.display = 'none';
+            btn.disabled = true;
+            const originalText = btnText.textContent;
+            btnText.textContent = translations[currentLang].waiting;
+
+            try {
+                if(!window.authAPI) throw "جاري تهيئة الاتصال...";
+                if(window.currentAuthMode === 'login') {
+                    await window.authAPI.login(email, password);
+                } else {
+                    await window.authAPI.register(email, password);
+                }
+                // عند النجاح، Firebase سيغير الحالة تلقائياً ويخفي الشاشة
+            } catch(err) {
+                document.getElementById('authErrorText').textContent = "خطأ: تأكد من البيانات أو الاتصال";
+                errorDiv.style.display = 'block';
+                btn.disabled = false;
+                btnText.textContent = originalText;
+            }
+        };
+
+        window.logoutUser = function() {
+            if(confirm('تسجيل خروج؟')) window.authAPI.logout();
+        }
+
+        // --- واجهة التطبيق (Render App) ---
+        window.updateUI = function() {
+            const now = isSimulating ? new Date(simulatedDateObj) : new Date();
+            now.setHours(0,0,0,0);
+            const startDate = new Date(START_DATE_STR);
+            startDate.setHours(0,0,0,0);
+            
+            safeSetText('dateDisplay', now.toLocaleDateString('ar-KW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }));
+            
+            const diffTime = now - startDate;
+            if (diffTime >= 0) {
+                const dayIndex = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                const globalStartPage = (dayIndex * PAGES_PER_DAY) + 1;
+                renderVerseRange(globalStartPage);
+                renderPrayersList(globalStartPage);
+            } else {
+                safeSetText('startVerseInfo', "لم يبدأ بعد");
+            }
+        };
+
+        function renderVerseRange(startPage) {
+             // منطق بسيط لعرض أرقام الصفحات
+             const endPage = startPage + 4;
+             safeSetText('startVerseInfo', `صفحة ${startPage}`);
+             safeSetText('endVerseInfo', `صفحة ${endPage}`);
+        }
+
+        window.togglePrayer = function(index) {
+            const dateStr = getStorageKey();
+            const newData = [...currentPrayersState];
+            newData[index] = !newData[index];
+            currentPrayersState = newData; 
+            renderPrayersList(); // Re-render logic needed here but simplified for brevity
+            
+            // حفظ في Firebase
+            if (window.firebaseAPI) window.firebaseAPI.saveProgress(dateStr, newData);
+            
+            // تحديث الواجهة فورياً
+            window.updateUI();
+        };
+
+        function renderPrayersList(globalStartPage) {
+            const listContainer = document.getElementById('prayersList');
+            if(!listContainer) return;
+            
+            // إذا لم يتم تمرير رقم صفحة، نحسبه
+            if(!globalStartPage) {
+                 const now = isSimulating ? new Date(simulatedDateObj) : new Date();
+                 const startDate = new Date(START_DATE_STR);
+                 const diffTime = now - startDate;
+                 const dayIndex = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                 globalStartPage = (dayIndex * PAGES_PER_DAY) + 1;
+            }
+
+            listContainer.innerHTML = '';
+            let completedCount = 0;
+
+            prayerIcons.forEach((icon, index) => {
+                const isChecked = currentPrayersState[index];
+                if (isChecked) completedCount++;
+                let pageNum = ((globalStartPage + index - 1) % QURAN_PAGES) + 1;
+
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-white dark:bg-emerald-800/40";
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">${icon}</div>
+                        <div>
+                            <div class="font-bold text-sm dark:text-gray-200">${prayerNames[index]}</div>
+                            <div class="text-[10px] text-gray-400">صفحة <span class="text-emerald-600 font-bold">${pageNum}</span></div>
+                        </div>
+                    </div>
+                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="window.togglePrayer(${index})" class="w-5 h-5 accent-emerald-600 cursor-pointer">
+                `;
+                listContainer.appendChild(item);
+            });
+
+            // شريط التقدم
+            const percentage = (completedCount / 5) * 100;
+            const bar = document.getElementById('dailyProgressBar');
+            if(bar) bar.style.width = `${percentage}%`;
+            safeSetText('progressLabel', `${completedCount} من 5 صلوات`);
+        }
+
+        // --- أدوات المحاكاة ---
+        window.toggleSimulator = () => document.getElementById('simulatorPanel').classList.toggle('hidden');
+        window.manualUpdate = () => {
+            const val = document.getElementById('simulatedDate').value;
+            if(val) { isSimulating = true; simulatedDateObj = new Date(val); document.getElementById('simulationBadge').classList.remove('hidden'); window.updateUI(); }
+        };
+        window.resetToToday = () => { isSimulating = false; document.getElementById('simulationBadge').classList.add('hidden'); window.updateUI(); };
+        window.toggleDarkMode = () => document.documentElement.classList.toggle('dark');
+        window.toggleLanguage = () => alert("تغيير اللغة متاح في النسخة الكاملة");
+
+    </script>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, onSnapshot, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBSMaNzhzKCtfQcL7kyCoz6CWmQM4pMsds",
+            authDomain: "muslimhabit-b21fd.firebaseapp.com",
+            projectId: "muslimhabit-b21fd",
+            storageBucket: "muslimhabit-b21fd.firebasestorage.app",
+            messagingSenderId: "250434152968",
+            appId: "1:250434152968:web:3b9ed463db1c0e873a3fbd",
+            measurementId: "G-9BR2F65RGC"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            let unsubscribeDoc = null;
+            let currentUser = null;
+
+            window.authAPI = {
+                login: async (email, password) => {
+                    try { await signInWithEmailAndPassword(auth, email, password); } 
+                    catch (e) { throw e.code; }
+                },
+                register: async (email, password) => {
+                    try { await createUserWithEmailAndPassword(auth, email, password); } 
+                    catch (e) { throw e.code; }
+                },
+                logout: async () => {
+                    if (unsubscribeDoc) unsubscribeDoc();
+                    await signOut(auth);
+                }
+            };
+
+            window.firebaseAPI = {
+                subscribeToDate: (dateStr, callback) => {
+                    if (!db || !currentUser) return;
+                    if (unsubscribeDoc) unsubscribeDoc();
+                    const docPath = doc(db, 'users', currentUser.uid, 'daily_reads', dateStr);
+                    unsubscribeDoc = onSnapshot(docPath, (snap) => {
+                        if (snap.exists()) callback(snap.data().prayers || [false,false,false,false,false]);
+                        else callback([false,false,false,false,false]);
+                    });
+                },
+                saveProgress: async (dateStr, data) => {
+                    if (!db || !currentUser) return;
+                    const docPath = doc(db, 'users', currentUser.uid, 'daily_reads', dateStr);
+                    await setDoc(docPath, { prayers: data, lastUpdated: new Date().toISOString() }, { merge: true });
+                }
+            };
+
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                const authScreen = document.getElementById('authScreen');
+                const mainApp = document.getElementById('mainApp');
+                
+                if (user) {
+                    // المستخدم مسجل دخول -> إخفاء الدخول وإظهار التطبيق
+                    authScreen.style.display = 'none';
+                    mainApp.classList.remove('hidden');
+                    safeSetText('userEmailDisplay', user.email);
+                    
+                    if(window.updateUI) {
+                        window.updateUI();
+                         // تحميل البيانات من Firebase
+                        window.firebaseAPI.subscribeToDate(getStorageKey(), (data) => {
+                            currentPrayersState = data;
+                            window.renderPrayersList(); // Re-render with new data
+                        });
+                    }
+                } else {
+                    // المستخدم غير مسجل -> إظهار الدخول وإخفاء التطبيق
+                    authScreen.style.display = 'block';
+                    mainApp.classList.add('hidden');
+                }
+            });
+
+        } catch (e) {
+            console.error("Firebase Init Error:", e);
+        }
+    </script>
 </body>
 </html>
