@@ -25,7 +25,6 @@
                         'fade-in': 'fadeIn 0.5s ease-out',
                         'slide-up': 'slideUp 0.5s ease-out',
                         'bounce-short': 'bounceShort 0.5s ease-in-out',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
@@ -52,7 +51,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, doc, onSnapshot, setDoc, getDoc, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, doc, onSnapshot, setDoc, getDoc, collection, query, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyBSMaNzhzKCtfQcL7kyCoz6CWmQM4pMsds",
@@ -66,7 +65,7 @@
         const app = initializeApp(firebaseConfig);
         window.auth = getAuth(app);
         window.db = getFirestore(app);
-        window.firebaseModules = { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, doc, onSnapshot, setDoc, getDoc, collection, query, where, getDocs };
+        window.firebaseModules = { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, doc, onSnapshot, setDoc, getDoc, collection, query, getDocs };
     </script>
 
     <style>
@@ -136,14 +135,14 @@
                 login: "دخول", register: "جديد", email: "البريد", pass: "كلمة المرور",
                 submit: "انطلق", logout: "خروج", fajr: "الفجر", dhuhr: "الظهر",
                 asr: "العصر", maghrib: "المغرب", isha: "العشاء", page: "ص",
-                progress: "مكتمل", reset: "إعادة", online: "متصل",
+                progress: "صفحة مكتملة", reset: "إعادة", online: "متصل",
                 wait: "...", notStarted: "يبدأ 2026", completedMsg: "ما شاء الله!",
                 from: "من", to: "إلى", surah: "سورة",
                 streak: "أيام متتالية", settings: "الإعدادات", history: "السجل",
                 pagesPerDay: "عدد الصفحات يومياً", save: "حفظ التغييرات", cancel: "إلغاء",
                 shareTitle: "شارك إنجازك", copy: "نسخ النص", copied: "تم النسخ!",
                 badges: "الأوسمة", badge1: "بداية الخير", badge3: "ثبات", badge7: "أسبوع كامل",
-                shareText: "الحمد لله، أتممت وردي اليومي ({p}/5) صلوات وصفحات القرآن. 🕌✨ #MuslimHabit",
+                shareText: "الحمد لله، أتممت وردي اليومي ({p} صفحات) من القرآن الكريم. 🕌✨ #MuslimHabit",
                 dailyGoal: "هدف اليوم"
             },
             en: {
@@ -151,31 +150,28 @@
                 login: "Login", register: "New", email: "Email", pass: "Password",
                 submit: "Go", logout: "Exit", fajr: "Fajr", dhuhr: "Dhuhr",
                 asr: "Asr", maghrib: "Maghrib", isha: "Isha", page: "Pg",
-                progress: "Done", reset: "Reset", online: "Online",
+                progress: "Pages Done", reset: "Reset", online: "Online",
                 wait: "...", notStarted: "Starts 2026", completedMsg: "Great Job!",
                 from: "From", to: "To", surah: "Surah",
                 streak: "Streak", settings: "Settings", history: "History",
                 pagesPerDay: "Pages per day", save: "Save Changes", cancel: "Cancel",
                 shareTitle: "Share Progress", copy: "Copy Text", copied: "Copied!",
                 badges: "Badges", badge1: "First Step", badge3: "Focus", badge7: "Full Week",
-                shareText: "Alhamdulillah, completed my daily wird ({p}/5) prayers & Quran pages. 🕌✨ #MuslimHabit",
+                shareText: "Alhamdulillah, completed my daily wird ({p} pages) of Quran. 🕌✨ #MuslimHabit",
                 dailyGoal: "Daily Goal"
             }
         };
 
-        // --- ICONS ---
         const Icon = ({ name, size = 20, className, onClick }) => {
             useEffect(() => { lucide.createIcons(); }, [name]);
             return <i data-lucide={name} width={size} height={size} className={className} onClick={onClick}></i>;
         };
 
-        // --- SUB-COMPONENTS ---
+        // --- COMPONENTS ---
 
-        // 1. Settings Modal (FIXED: Internal State)
         const SettingsModal = ({ isOpen, onClose, initialPages, onSave, lang }) => {
             if (!isOpen) return null;
             const t = translations[lang];
-            // Use internal state so we don't spam updates
             const [localPages, setLocalPages] = useState(initialPages);
 
             return (
@@ -202,14 +198,13 @@
             );
         };
 
-        // 2. Share Modal
-        const ShareModal = ({ isOpen, onClose, completedCount, lang }) => {
+        const ShareModal = ({ isOpen, onClose, pagesCount, lang }) => {
             if (!isOpen) return null;
             const t = translations[lang];
             const [copied, setCopied] = useState(false);
             
             const handleCopy = () => {
-                const text = t.shareText.replace('{p}', completedCount);
+                const text = t.shareText.replace('{p}', pagesCount);
                 navigator.clipboard.writeText(text);
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
@@ -223,7 +218,7 @@
                         </div>
                         <h3 className="font-bold text-xl mb-2 dark:text-white">{t.shareTitle}</h3>
                         <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl mb-4 text-sm text-gray-600 dark:text-gray-300 italic">
-                            "{t.shareText.replace('{p}', completedCount)}"
+                            "{t.shareText.replace('{p}', pagesCount)}"
                         </div>
                         <div className="flex gap-3">
                             <button onClick={handleCopy} className="flex-1 py-3 bg-primary-600 text-white rounded-xl font-bold flex items-center justify-center gap-2">
@@ -238,7 +233,6 @@
             );
         };
 
-        // 3. History Component
         const HistoryView = ({ user, lang }) => {
             const [history, setHistory] = useState({});
             const [loading, setLoading] = useState(true);
@@ -315,7 +309,7 @@
             );
         };
 
-        // --- MAIN DASHBOARD ---
+        // --- DASHBOARD ---
         const Dashboard = ({ user, lang, setLang }) => {
             const t = translations[lang];
             const [prayers, setPrayers] = useState([false, false, false, false, false]);
@@ -330,7 +324,6 @@
             const prayerNames = [t.fajr, t.dhuhr, t.asr, t.maghrib, t.isha];
             const prayerIcons = ['sunrise', 'sun', 'cloud-sun', 'sunset', 'moon'];
 
-            // Calculate Pages (Memoized, strictly depends on settings.pagesPerDay)
             const pageData = useMemo(() => {
                 const start2026 = new Date('2026-01-01').getTime();
                 const now = new Date().getTime();
@@ -341,7 +334,6 @@
                 return { start: startPage, end: startPage + p - 1 };
             }, [settings.pagesPerDay]);
 
-            // Initial Fetch
             useEffect(() => {
                 const fetchData = async () => {
                     const { doc, getDoc } = window.firebaseModules;
@@ -359,11 +351,10 @@
                 fetchData();
             }, [user]);
 
-            // Quran API Fetch
             useEffect(() => {
                 if (!pageData) return;
                 const fetchQuran = async () => {
-                    setVerseInfo(null); // Clear previous to show loading state if needed
+                    setVerseInfo(null);
                     const cacheKey = `quran_${pageData.start}_${pageData.end}`;
                     const cached = safeStorage.getItem(cacheKey);
                     if (cached) { setVerseInfo(JSON.parse(cached)); return; }
@@ -394,16 +385,14 @@
                 fetchQuran();
             }, [pageData, lang]);
 
-            // Handler: Check Prayer
             const handleCheck = async (index) => {
                 const newPrayers = [...prayers];
                 newPrayers[index] = !newPrayers[index];
                 if (newPrayers[index]) playTone('success'); else playTone('click');
                 setPrayers(newPrayers);
 
-                const completedCount = newPrayers.filter(p => p).length;
-                if (completedCount === 5 && !prayers.every(p => p)) {
-                    // Confetti & Streak
+                const completed = newPrayers.filter(p => p).length;
+                if (completed === 5 && !prayers.every(p => p)) {
                     const canvas = document.getElementById('confetti-canvas');
                     if(canvas) {
                         const ctx = canvas.getContext('2d');
@@ -424,7 +413,6 @@
                 await setDoc(doc(window.db, 'users', user.uid, 'daily_reads', today), { prayers: newPrayers, updatedAt: new Date().toISOString() }, { merge: true });
             };
 
-            // Handler: Save Settings (Triggers update)
             const handleSaveSettings = async (newPages) => {
                 setShowSettings(false);
                 setSettings({ ...settings, pagesPerDay: newPages });
@@ -432,12 +420,15 @@
                 await setDoc(doc(window.db, 'users', user.uid), { settings: { pagesPerDay: newPages } }, { merge: true });
             };
 
-            const completedCount = prayers.filter(p => p).length;
-            const progress = (completedCount / 5) * 100;
-            const isAllDone = completedCount === 5;
+            const completedPrayers = prayers.filter(p => p).length;
+            const progressPercent = (completedPrayers / 5) * 100;
+            const isAllDone = completedPrayers === 5;
             
-            // Calculate prayer page spread safely
-            const pagesPerPrayer = settings.pagesPerDay / 5;
+            // Calculate actual pages done for display (e.g. 2/10 or 10/10)
+            const pagesTotal = parseInt(settings.pagesPerDay);
+            const pagesDone = Math.round((completedPrayers / 5) * pagesTotal);
+
+            const pagesPerPrayer = pagesTotal / 5;
 
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 font-sans" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
@@ -465,21 +456,20 @@
                             <div className="relative z-10 flex justify-between items-end">
                                 <div>
                                     <p className="text-sm opacity-90 mb-1 font-medium">{t.progress}</p>
-                                    <h1 className="text-4xl font-bold font-quran">{isAllDone ? "🎉" : `${completedCount}/5`}</h1>
+                                    <h1 className="text-4xl font-bold font-quran">{isAllDone ? "🎉" : `${pagesDone}/${pagesTotal}`}</h1>
                                 </div>
                                 <div className="text-right">
                                      <button onClick={() => setShowShare(true)} className="bg-white/20 hover:bg-white/30 p-2 rounded-xl backdrop-blur-sm transition"><Icon name="share-2" size={20} className="text-white" /></button>
                                 </div>
                             </div>
                             <div className="w-full bg-black/20 rounded-full h-2 mt-4 overflow-hidden backdrop-blur-sm">
-                                <div className="h-full bg-white/90 rounded-full transition-all duration-700 ease-out" style={{ width: `${progress}%` }}></div>
+                                <div className="h-full bg-white/90 rounded-full transition-all duration-700 ease-out" style={{ width: `${progressPercent}%` }}></div>
                             </div>
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
                         </div>
 
                         <BadgesRow streak={streak} lang={lang} />
 
-                        {/* Quran Info Card */}
                         <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col gap-3 relative overflow-hidden">
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-2 text-primary-600">
@@ -543,7 +533,7 @@
                         <HistoryView user={user} lang={lang} />
                     </div>
                     <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} initialPages={settings.pagesPerDay} onSave={handleSaveSettings} lang={lang} />
-                    <ShareModal isOpen={showShare} onClose={() => setShowShare(false)} completedCount={completedCount} lang={lang} />
+                    <ShareModal isOpen={showShare} onClose={() => setShowShare(false)} pagesCount={pagesDone} lang={lang} />
                 </div>
             );
         };
