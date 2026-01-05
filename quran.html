@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Muslim Habit Pro | متابع الورد</title>
+    <title>Muslim Habit | الذكي</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,45 +13,45 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                        arabic: ['Cairo', 'sans-serif'],
+                        sans: ['Outfit', 'sans-serif'],
+                        arabic: ['Almarai', 'sans-serif'],
                         quran: ['Amiri', 'serif'],
                     },
                     colors: {
-                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 500: '#10b981', 600: '#059669', 900: '#064e3b' },
-                        gold: { 400: '#fbbf24', 500: '#f59e0b' }
+                        brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 900: '#0c4a6e' },
+                        accent: { 400: '#fbbf24', 500: '#f59e0b' },
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.5s ease-out',
-                        'slide-up': 'slideUp 0.5s ease-out',
-                        'bounce-short': 'bounceShort 0.5s ease-in-out',
+                        'scale-in': 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'pulse-slow': 'pulse 3s infinite',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
-                        bounceShort: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } }
+                        scaleIn: { '0%': { transform: 'scale(0.9)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } }
                     }
                 }
             }
         }
     </script>
 
-    <!-- React & ReactDOM -->
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- React & Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Outfit:wght@300;400;600;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, doc, onSnapshot, setDoc, getDoc, collection, query, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, doc, onSnapshot, setDoc, getDoc, collection, query, getDocs, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyBSMaNzhzKCtfQcL7kyCoz6CWmQM4pMsds",
@@ -65,102 +65,57 @@
         const app = initializeApp(firebaseConfig);
         window.auth = getAuth(app);
         window.db = getFirestore(app);
-        window.firebaseModules = { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, doc, onSnapshot, setDoc, getDoc, collection, query, getDocs };
+        window.firebaseModules = { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, doc, onSnapshot, setDoc, getDoc, collection, query, getDocs, orderBy, limit };
     </script>
 
     <style>
         body { -webkit-tap-highlight-color: transparent; }
-        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); }
-        .dark .glass { background: rgba(6, 78, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .app-bg { background-color: #f8fafc; background-image: radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.1) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.1) 0px, transparent 50%); }
+        .dark .app-bg { background-color: #0f172a; background-image: radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.05) 0px, transparent 50%); }
+        .glass-panel { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); }
+        .dark .glass-panel { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        .checkbox-wrapper input:checked + div { background-color: #10b981; border-color: #10b981; }
-        .checkbox-wrapper input:checked + div svg { stroke-dashoffset: 0; }
+        .modern-checkbox input:checked + div { background-color: #0ea5e9; border-color: #0ea5e9; box-shadow: 0 0 15px rgba(14, 165, 233, 0.4); }
+        .modern-checkbox input:checked + div svg { stroke-dashoffset: 0; }
         .checkmark { stroke-dasharray: 24; stroke-dashoffset: 24; transition: stroke-dashoffset 0.4s ease-in-out; }
+        
+        /* AI Gradient Text */
+        .ai-gradient { background: linear-gradient(135deg, #0ea5e9 0%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-500 overflow-x-hidden text-gray-800 dark:text-gray-100 font-arabic">
+<body class="app-bg transition-colors duration-500 overflow-x-hidden text-slate-800 dark:text-slate-100 font-arabic selection:bg-brand-500 selection:text-white">
     <div id="root"></div>
     <canvas id="confetti-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;"></canvas>
 
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
 
-        // --- UTILS ---
-        const safeStorage = {
-            getItem: (key) => { try { return localStorage.getItem(key); } catch (e) { return null; } },
-            setItem: (key, value) => { try { localStorage.setItem(key, value); } catch (e) {} }
-        };
+        const safeStorage = { getItem: (k) => { try { return localStorage.getItem(k) } catch(e) { return null } }, setItem: (k,v) => { try { localStorage.setItem(k,v) } catch(e) {} } };
+        const playTone = (type) => { try { const AudioContext = window.AudioContext || window.webkitAudioContext; if (!AudioContext) return; const ctx = new AudioContext(); const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination); const now = ctx.currentTime; if (type === 'click') { osc.frequency.setValueAtTime(800, now); gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1); osc.start(now); osc.stop(now + 0.1); } else if (type === 'success') { osc.type = 'triangle'; osc.frequency.setValueAtTime(440, now); osc.frequency.exponentialRampToValueAtTime(880, now + 0.2); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3); osc.start(now); osc.stop(now + 0.3); } } catch(e) {} };
 
-        const playTone = (type) => {
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) return;
-                const ctx = new AudioContext();
-                if (ctx.state === 'suspended') ctx.resume();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                const now = ctx.currentTime;
-                
-                if (type === 'click') {
-                    osc.frequency.setValueAtTime(600, now);
-                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
-                    gain.gain.setValueAtTime(0.05, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now);
-                    osc.stop(now + 0.1);
-                } else if (type === 'success') {
-                    [523.25, 659.25, 783.99].forEach((freq, i) => {
-                        const o = ctx.createOscillator();
-                        const g = ctx.createGain();
-                        o.connect(g);
-                        g.connect(ctx.destination);
-                        o.frequency.value = freq;
-                        g.gain.setValueAtTime(0.05, now + (i * 0.05));
-                        g.gain.exponentialRampToValueAtTime(0.001, now + (i * 0.05) + 0.3);
-                        o.start(now + (i * 0.05));
-                        o.stop(now + (i * 0.05) + 0.4);
-                    });
-                }
-            } catch (e) {}
-        };
-
-        // --- TRANSLATIONS ---
         const translations = {
             ar: {
-                title: "متابع الورد", subtitle: "عادتك اليومية", welcome: "مرحباً",
-                login: "دخول", register: "جديد", email: "البريد", pass: "كلمة المرور",
-                submit: "انطلق", logout: "خروج", fajr: "الفجر", dhuhr: "الظهر",
-                asr: "العصر", maghrib: "المغرب", isha: "العشاء", page: "ص",
-                progress: "صفحة مكتملة", reset: "إعادة", online: "متصل",
-                wait: "...", notStarted: "يبدأ 2026", completedMsg: "ما شاء الله!",
-                from: "من", to: "إلى", surah: "سورة",
-                streak: "أيام متتالية", settings: "الإعدادات", history: "السجل",
-                pagesPerDay: "عدد الصفحات يومياً", save: "حفظ التغييرات", cancel: "إلغاء",
-                shareTitle: "شارك إنجازك", copy: "نسخ النص", copied: "تم النسخ!",
-                badges: "الأوسمة", badge1: "بداية الخير", badge3: "ثبات", badge7: "أسبوع كامل",
-                shareText: "الحمد لله، أتممت وردي اليومي ({p} صفحات) من القرآن الكريم. 🕌✨ #MuslimHabit",
-                dailyGoal: "هدف اليوم",
-                daysLeft: "يوم للختمة", khatmasDone: "ختمات منجزة", date: "التاريخ"
+                welcome: "أهلاً بك،", dashboard: "لوحة الإنجاز", settings: "الإعدادات", share: "مشاركة", logout: "خروج",
+                streak: "أيام متتالية", todayGoal: "هدف اليوم", pages: "صفحة", completed: "مكتمل", 
+                daysLeft: "يوم متبقي", khatmas: "الختمات", fajr: "الفجر", dhuhr: "الظهر", asr: "العصر", maghrib: "المغرب", isha: "العشاء",
+                save: "حفظ", cancel: "إلغاء", pagesPerDay: "كم صفحة تريد أن تقرأ يومياً؟",
+                from: "من", to: "إلى", surah: "سورة", ayah: "الآية", wait: "...",
+                insights: "المحلل الذكي", insightsDesc: "تحليل سلوكك باستخدام الذكاء الاصطناعي",
+                chartPrayers: "الالتزام حسب الصلاة", chartDays: "الالتزام الأسبوعي",
+                aiTitle: "تقرير الأداء الشخصي", aiLoading: "جاري تحليل البيانات...", 
+                aiAdvice: "بناءً على سجلك:", aiPattern: "نمط السلوك المكتشف"
             },
             en: {
-                title: "Muslim Habit", subtitle: "Daily Tracker", welcome: "Hi",
-                login: "Login", register: "New", email: "Email", pass: "Password",
-                submit: "Go", logout: "Exit", fajr: "Fajr", dhuhr: "Dhuhr",
-                asr: "Asr", maghrib: "Maghrib", isha: "Isha", page: "Pg",
-                progress: "Pages Done", reset: "Reset", online: "Online",
-                wait: "...", notStarted: "Starts 2026", completedMsg: "Great Job!",
-                from: "From", to: "To", surah: "Surah",
-                streak: "Streak", settings: "Settings", history: "History",
-                pagesPerDay: "Pages per day", save: "Save Changes", cancel: "Cancel",
-                shareTitle: "Share Progress", copy: "Copy Text", copied: "Copied!",
-                badges: "Badges", badge1: "First Step", badge3: "Focus", badge7: "Full Week",
-                shareText: "Alhamdulillah, completed my daily wird ({p} pages) of Quran. 🕌✨ #MuslimHabit",
-                dailyGoal: "Daily Goal",
-                daysLeft: "Days to Khatma", khatmasDone: "Khatmas Done", date: "Date"
+                welcome: "Hello,", dashboard: "Dashboard", settings: "Settings", share: "Share", logout: "Logout",
+                streak: "Streak", todayGoal: "Today's Goal", pages: "Pages", completed: "Done", 
+                daysLeft: "Days Left", khatmas: "Khatmas", fajr: "Fajr", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha",
+                save: "Save", cancel: "Cancel", pagesPerDay: "Pages per day?",
+                from: "From", to: "To", surah: "Surah", ayah: "Ayah", wait: "...",
+                insights: "Smart Analyst", insightsDesc: "AI-driven behavior analysis",
+                chartPrayers: "Prayer Commitment", chartDays: "Weekly Consistency",
+                aiTitle: "Personal Performance Report", aiLoading: "Analyzing data...",
+                aiAdvice: "Based on your history:", aiPattern: "Detected Behavior Pattern"
             }
         };
 
@@ -169,169 +124,294 @@
             return <i data-lucide={name} width={size} height={size} className={className} onClick={onClick}></i>;
         };
 
+        // --- AI LOGIC (Simulated for Client-Side) ---
+        const generateSmartAnalysis = (historyData, lang, t) => {
+            if (!historyData || historyData.length < 3) return null; // Need data
+
+            const prayerNames = [t.fajr, t.dhuhr, t.asr, t.maghrib, t.isha];
+            const dayNames = lang === 'ar' ? ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'] : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            
+            const prayerCounts = [0,0,0,0,0];
+            const dayMisses = [0,0,0,0,0,0,0];
+            let totalPrayers = 0;
+            let completedPrayers = 0;
+
+            historyData.forEach(d => {
+                const dayIdx = new Date(d.date).getDay();
+                d.prayers?.forEach((p, i) => {
+                    totalPrayers++;
+                    if(p) { 
+                        prayerCounts[i]++; 
+                        completedPrayers++;
+                    } else {
+                        dayMisses[dayIdx]++;
+                    }
+                });
+            });
+
+            const commitment = Math.round((completedPrayers / totalPrayers) * 100);
+            
+            // Identify Weaknesses
+            const minPrayerVal = Math.min(...prayerCounts);
+            const weakestPrayer = prayerNames[prayerCounts.indexOf(minPrayerVal)];
+            
+            const maxMissDayVal = Math.max(...dayMisses);
+            const weakestDay = dayNames[dayMisses.indexOf(maxMissDayVal)];
+
+            // Generate Insight Text
+            let insight = "";
+            let pattern = "";
+
+            if (commitment > 80) {
+                insight = lang === 'ar' ? "أداء مبهر! حافظ على هذا المستوى." : "Outstanding performance! Keep it up.";
+                pattern = lang === 'ar' ? "التزامك عالٍ جداً ومستقر." : "Highly consistent habit.";
+            } else {
+                if (maxMissDayVal > 0) {
+                    pattern = lang === 'ar' 
+                        ? `لوحظ انخفاض في الالتزام أيام (${weakestDay}).`
+                        : `Commitment drops on (${weakestDay}).`;
+                }
+                insight = lang === 'ar' 
+                    ? `يبدو أن وقت (${weakestPrayer}) هو التحدي الأكبر لك حالياً. جرب قراءة الورد قبله بـ 5 دقائق.` 
+                    : `(${weakestPrayer}) seems to be your biggest challenge. Try reading 5 mins before it.`;
+            }
+
+            return { commitment, weakestPrayer, weakestDay, insight, pattern };
+        };
+
         // --- COMPONENTS ---
 
-        const StatsGrid = ({ khatmas, daysLeft, lang }) => {
+        const InsightCharts = ({ historyData, lang }) => {
+            const chartRef1 = useRef(null);
+            const chartRef2 = useRef(null);
             const t = translations[lang];
-            const dateStr = new Date().toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short' });
-            
+
+            useEffect(() => {
+                if (!historyData || historyData.length === 0) return;
+                const prayerCounts = [0,0,0,0,0]; const dayCounts = [0,0,0,0,0,0,0];
+                historyData.forEach(entry => {
+                    if (entry.prayers) {
+                        entry.prayers.forEach((done, idx) => {
+                            if(done) { prayerCounts[idx]++; const dayIndex = new Date(entry.date).getDay(); dayCounts[dayIndex]++; }
+                        });
+                    }
+                });
+
+                const ctx1 = document.getElementById('prayerChart').getContext('2d');
+                if (chartRef1.current) chartRef1.current.destroy();
+                chartRef1.current = new Chart(ctx1, { type: 'bar', data: { labels: [t.fajr, t.dhuhr, t.asr, t.maghrib, t.isha], datasets: [{ label: t.completed, data: prayerCounts, backgroundColor: 'rgba(14, 165, 233, 0.6)', borderRadius: 6 }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } } });
+
+                const ctx2 = document.getElementById('weeklyChart').getContext('2d');
+                if (chartRef2.current) chartRef2.current.destroy();
+                chartRef2.current = new Chart(ctx2, { type: 'line', data: { labels: lang === 'ar' ? ['أحد','اثنين','ث','أ','خ','ج','س'] : ['Su','Mo','Tu','We','Th','Fr','Sa'], datasets: [{ label: t.completed, data: dayCounts, borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } } });
+            }, [historyData, lang]);
+
             return (
-                <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 text-center flex flex-col items-center justify-center">
-                        <Icon name="calendar-days" size={16} className="text-primary-500 mb-1" />
-                        <span className="text-[10px] text-gray-400 font-bold">{t.date}</span>
-                        <span className="text-xs font-bold dark:text-gray-200">{dateStr}</span>
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                    <div className="glass-panel p-3 rounded-3xl">
+                        <h4 className="text-[10px] font-bold text-slate-400 mb-2 uppercase">{t.chartPrayers}</h4>
+                        <canvas id="prayerChart" height="150"></canvas>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 text-center flex flex-col items-center justify-center">
-                        <Icon name="hourglass" size={16} className="text-orange-500 mb-1" />
-                        <span className="text-[10px] text-gray-400 font-bold">{t.daysLeft}</span>
-                        <span className="text-xs font-bold dark:text-gray-200">{daysLeft}</span>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 text-center flex flex-col items-center justify-center">
-                        <Icon name="check-circle-2" size={16} className="text-gold-500 mb-1" />
-                        <span className="text-[10px] text-gray-400 font-bold">{t.khatmasDone}</span>
-                        <span className="text-xs font-bold dark:text-gray-200">{khatmas}</span>
+                    <div className="glass-panel p-3 rounded-3xl">
+                        <h4 className="text-[10px] font-bold text-slate-400 mb-2 uppercase">{t.chartDays}</h4>
+                        <canvas id="weeklyChart" height="150"></canvas>
                     </div>
                 </div>
             );
         };
+
+        const SmartAnalysisCard = ({ analysis, lang, t }) => {
+            if (!analysis) return (
+                <div className="p-6 text-center border border-dashed border-slate-300 dark:border-slate-700 rounded-3xl mt-4">
+                    <p className="text-sm text-slate-400">تحتاج لتسجيل بيانات 3 أيام على الأقل ليعمل المحلل الذكي.</p>
+                </div>
+            );
+
+            return (
+                <div className="bg-gradient-to-br from-brand-900 to-brand-700 text-white p-6 rounded-[2rem] mt-6 shadow-xl relative overflow-hidden">
+                    {/* Background Glow */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-accent-500 rounded-full mix-blend-overlay filter blur-[50px] opacity-30"></div>
+                    
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Icon name="sparkles" className="text-accent-400 animate-pulse" size={18} />
+                            <h3 className="font-bold text-lg">{t.aiTitle}</h3>
+                        </div>
+
+                        <div className="mb-4">
+                            <p className="text-xs text-brand-200 uppercase font-bold mb-1">{t.aiPattern}</p>
+                            <p className="text-sm font-medium">{analysis.pattern}</p>
+                        </div>
+
+                        <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+                            <p className="text-xs text-accent-300 uppercase font-bold mb-2">{t.aiAdvice}</p>
+                            <p className="text-sm leading-relaxed">{analysis.insight}</p>
+                        </div>
+
+                        <div className="mt-4 flex items-center justify-between text-xs font-mono text-brand-200">
+                            <span>Score: {analysis.commitment}/100</span>
+                            <span>Focus: {analysis.weakestPrayer}</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const InsightsModal = ({ isOpen, onClose, historyData, lang }) => {
+            if (!isOpen) return null;
+            const t = translations[lang];
+            const analysis = useMemo(() => generateSmartAnalysis(historyData, lang, t), [historyData, lang]);
+
+            return (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-scale-in border border-slate-100 dark:border-slate-700 my-8 overflow-hidden">
+                        <div className="flex justify-between items-center mb-2">
+                            <div>
+                                <h3 className="font-bold text-2xl dark:text-white flex items-center gap-2 ai-gradient">
+                                    <Icon name="brain-circuit" /> {t.insights}
+                                </h3>
+                                <p className="text-xs text-slate-400 mt-1">{t.insightsDesc}</p>
+                            </div>
+                            <button onClick={onClose} className="bg-slate-100 dark:bg-slate-800 p-2 rounded-full"><Icon name="x" size={20} /></button>
+                        </div>
+
+                        <SmartAnalysisCard analysis={analysis} lang={lang} t={t} />
+                        <InsightCharts historyData={historyData} lang={lang} />
+                    </div>
+                </div>
+            );
+        };
+
+        // --- REUSED COMPONENTS FROM PREVIOUS VERSION ---
+        const HeroCard = ({ streak, pagesDone, pagesTotal, lang }) => {
+            const t = translations[lang];
+            const isDone = pagesDone >= pagesTotal;
+            return (
+                <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 text-white shadow-2xl p-8 mb-6 transition-transform hover:scale-[1.01] duration-500">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500 rounded-full mix-blend-overlay filter blur-[80px] opacity-20 animate-pulse"></div>
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent-500 rounded-full mix-blend-overlay filter blur-[60px] opacity-20"></div>
+                    <div className="relative z-10 flex flex-col gap-6">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-bold text-accent-400 mb-2">
+                                    <Icon name="flame" size={12} /> {streak} {t.streak}
+                                </span>
+                                <h2 className="text-4xl font-bold font-sans tracking-tight">
+                                    {isDone ? "🎉" : `${Math.round((pagesDone/pagesTotal)*100)}%`}
+                                    <span className="text-lg font-normal text-slate-400 ml-2">{t.completed}</span>
+                                </h2>
+                            </div>
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center shadow-glow text-white">
+                                <Icon name="book-open" size={24} />
+                            </div>
+                        </div>
+                        <div>
+                            <div className="flex justify-between text-xs text-slate-400 mb-2 font-bold">
+                                <span>{pagesDone} {t.pages}</span>
+                                <span>{pagesTotal} {t.pages}</span>
+                            </div>
+                            <div className="h-4 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                                <div className="h-full bg-gradient-to-r from-brand-400 to-brand-500 transition-all duration-1000 ease-out relative" style={{ width: `${(pagesDone/pagesTotal)*100}%` }}>
+                                    <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const InfoGrid = ({ khatmas, daysLeft, lang }) => {
+            const t = translations[lang];
+            const dateStr = new Date().toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'short' });
+            const Item = ({ icon, label, val, color }) => (
+                <div className="glass-panel p-4 rounded-3xl flex flex-col items-center justify-center gap-2 transition-transform hover:-translate-y-1 duration-300">
+                    <div className={`p-3 rounded-full ${color} bg-opacity-10 text-opacity-100`}>
+                        <Icon name={icon} size={20} className={color.replace('bg-', 'text-')} />
+                    </div>
+                    <div className="text-center">
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{label}</p>
+                        <p className="text-lg font-bold text-slate-800 dark:text-white">{val}</p>
+                    </div>
+                </div>
+            );
+            return (
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                    <Item icon="calendar" label={t.todayGoal} val={dateStr} color="bg-brand-500" />
+                    <Item icon="hourglass" label={t.daysLeft} val={daysLeft} color="bg-accent-500" />
+                    <Item icon="trophy" label={t.khatmas} val={khatmas} color="bg-purple-500" />
+                </div>
+            );
+        };
+
+        const ReadingScopeCard = ({ verseInfo, pageData, lang }) => {
+            const t = translations[lang];
+            if (!verseInfo || !pageData) return null;
+            return (
+                <div className="glass-panel p-5 rounded-3xl mb-8 border-l-4 border-l-brand-500 flex flex-col gap-3 relative overflow-hidden">
+                    <div className="absolute right-0 top-0 opacity-5 -translate-y-1/2 translate-x-1/2"><Icon name="book" size={100} /></div>
+                    <div className="flex justify-between items-center relative z-10">
+                        <div className="flex-1">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase mb-1 block">{t.from}</span>
+                            <h4 className="font-quran font-bold text-xl text-slate-800 dark:text-white">{t.surah} {verseInfo.start.name}</h4>
+                            <span className="text-xs text-brand-600 dark:text-brand-400 font-bold bg-brand-50 dark:bg-brand-900/30 px-2 py-0.5 rounded-lg inline-block mt-1">{t.ayah} {verseInfo.start.ayah}</span>
+                        </div>
+                        <div className="px-4 text-slate-300 dark:text-slate-600"><Icon name={lang === 'ar' ? 'arrow-left' : 'arrow-right'} size={20} /></div>
+                        <div className="flex-1 text-left" style={{textAlign: lang === 'ar' ? 'left' : 'right'}}>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase mb-1 block">{t.to}</span>
+                            <h4 className="font-quran font-bold text-xl text-slate-800 dark:text-white">{t.surah} {verseInfo.end.name}</h4>
+                            <span className="text-xs text-brand-600 dark:text-brand-400 font-bold bg-brand-50 dark:bg-brand-900/30 px-2 py-0.5 rounded-lg inline-block mt-1">{t.ayah} {verseInfo.end.ayah}</span>
+                        </div>
+                    </div>
+                    <div className="text-center mt-2 border-t border-slate-100 dark:border-slate-700 pt-2">
+                        <span className="text-[10px] text-slate-400">{t.pages}: <b className="text-slate-600 dark:text-slate-300">{pageData.start} - {pageData.end}</b></span>
+                    </div>
+                </div>
+            );
+        };
+
+        const PrayerItem = ({ name, icon, checked, pageInfo, onCheck }) => (
+            <div onClick={onCheck} className={`group relative overflow-hidden p-5 rounded-3xl cursor-pointer transition-all duration-300 border ${checked ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-brand-300'}`}>
+                <div className="flex items-center justify-between relative z-10">
+                    <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors duration-300 ${checked ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/30' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}><Icon name={icon} size={22} /></div>
+                        <div>
+                            <h3 className={`font-bold text-lg ${checked ? 'text-brand-700 dark:text-brand-400' : 'text-slate-700 dark:text-slate-300'}`}>{name}</h3>
+                            <p className="text-xs text-slate-400 font-bold mt-0.5">{pageInfo}</p>
+                        </div>
+                    </div>
+                    <div className="modern-checkbox relative w-8 h-8">
+                        <input type="checkbox" className="absolute inset-0 opacity-0 cursor-pointer" checked={checked} readOnly />
+                        <div className={`w-full h-full rounded-xl border-2 flex items-center justify-center transition-all duration-300 ${checked ? 'border-brand-500 bg-brand-500' : 'border-slate-300 dark:border-slate-600'}`}>
+                            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline className="checkmark" points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
 
         const SettingsModal = ({ isOpen, onClose, initialPages, onSave, lang }) => {
             if (!isOpen) return null;
             const t = translations[lang];
             const [localPages, setLocalPages] = useState(initialPages);
-
             return (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl w-full max-w-sm shadow-2xl animate-slide-up">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-bold text-lg dark:text-white">{t.settings}</h3>
-                            <button onClick={onClose}><Icon name="x" size={24} className="text-gray-500" /></button>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-fade-in">
+                    <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] w-full max-w-sm shadow-2xl animate-scale-in border border-slate-100 dark:border-slate-700">
+                        <div className="text-center mb-8">
+                            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">⚙️</div>
+                            <h3 className="font-bold text-xl dark:text-white">{t.settings}</h3>
+                            <p className="text-sm text-slate-400 mt-2">{t.pagesPerDay}</p>
                         </div>
-                        <div className="mb-6">
-                            <label className="block text-sm text-gray-500 mb-2">{t.pagesPerDay}</label>
-                            <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-2xl justify-between">
-                                <button onClick={() => setLocalPages(Math.max(1, localPages - 1))} className="w-10 h-10 rounded-xl bg-white dark:bg-gray-600 shadow-sm font-bold text-xl hover:scale-105 transition">-</button>
-                                <span className="text-2xl font-bold dark:text-white w-12 text-center">{localPages}</span>
-                                <button onClick={() => setLocalPages(localPages + 1)} className="w-10 h-10 rounded-xl bg-primary-500 text-white shadow-sm font-bold text-xl hover:scale-105 transition">+</button>
-                            </div>
+                        <div className="flex items-center justify-center gap-6 mb-8">
+                            <button onClick={() => setLocalPages(Math.max(1, localPages - 1))} className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-xl font-bold transition">-</button>
+                            <span className="text-4xl font-extrabold text-brand-600 dark:text-brand-400">{localPages}</span>
+                            <button onClick={() => setLocalPages(localPages + 1)} className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-xl font-bold transition">+</button>
                         </div>
-                        <div className="flex gap-2">
-                            <button onClick={onClose} className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl font-bold">{t.cancel}</button>
-                            <button onClick={() => onSave(localPages)} className="flex-[2] py-3 bg-primary-600 text-white rounded-xl font-bold shadow-lg shadow-primary-500/20">{t.save}</button>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button onClick={onClose} className="py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition">{t.cancel}</button>
+                            <button onClick={() => onSave(localPages)} className="py-4 rounded-2xl font-bold bg-brand-600 text-white shadow-lg shadow-brand-500/30 hover:scale-[1.02] transition">{t.save}</button>
                         </div>
                     </div>
-                </div>
-            );
-        };
-
-        const ShareModal = ({ isOpen, onClose, pagesCount, lang }) => {
-            if (!isOpen) return null;
-            const t = translations[lang];
-            const [copied, setCopied] = useState(false);
-            
-            const handleCopy = () => {
-                const text = t.shareText.replace('{p}', pagesCount);
-                navigator.clipboard.writeText(text);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-            };
-
-            return (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="glass p-6 rounded-3xl w-full max-w-sm shadow-2xl text-center animate-slide-up bg-white dark:bg-gray-900">
-                        <div className="w-16 h-16 bg-gradient-to-tr from-gold-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-bounce-short">
-                            <span className="text-3xl">🎉</span>
-                        </div>
-                        <h3 className="font-bold text-xl mb-2 dark:text-white">{t.shareTitle}</h3>
-                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl mb-4 text-sm text-gray-600 dark:text-gray-300 italic">
-                            "{t.shareText.replace('{p}', pagesCount)}"
-                        </div>
-                        <div className="flex gap-3">
-                            <button onClick={handleCopy} className="flex-1 py-3 bg-primary-600 text-white rounded-xl font-bold flex items-center justify-center gap-2">
-                                <Icon name={copied ? "check" : "copy"} size={18} /> {copied ? t.copied : t.copy}
-                            </button>
-                            <button onClick={onClose} className="p-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-500">
-                                <Icon name="x" size={20} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const HistoryView = ({ user, lang }) => {
-            const [history, setHistory] = useState({});
-            const [loading, setLoading] = useState(true);
-            const t = translations[lang];
-
-            useEffect(() => {
-                const fetchHistory = async () => {
-                    const { collection, getDocs, query } = window.firebaseModules;
-                    const q = query(collection(window.db, 'users', user.uid, 'daily_reads'));
-                    const snap = await getDocs(q);
-                    const data = {};
-                    snap.forEach(doc => {
-                        const prayers = doc.data().prayers || [];
-                        const count = prayers.filter(p => p).length;
-                        data[doc.id] = count;
-                    });
-                    setHistory(data);
-                    setLoading(false);
-                };
-                fetchHistory();
-            }, [user]);
-
-            const date = new Date();
-            const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-            const days = Array.from({length: daysInMonth}, (_, i) => i + 1);
-            const currentMonthStr = date.toISOString().slice(0, 7); 
-
-            return (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 mt-4">
-                    <h3 className="font-bold text-sm mb-4 flex items-center gap-2 dark:text-white">
-                        <Icon name="calendar" size={16} className="text-primary-500" /> {t.history}
-                    </h3>
-                    {loading ? <div className="text-center text-xs text-gray-400">{t.wait}</div> : (
-                        <div className="grid grid-cols-7 gap-2">
-                            {days.map(d => {
-                                const dayStr = `${currentMonthStr}-${String(d).padStart(2, '0')}`;
-                                const count = history[dayStr] || 0;
-                                let bgClass = 'bg-gray-100 dark:bg-gray-700 text-gray-400';
-                                if (count === 5) bgClass = 'bg-primary-500 text-white shadow-sm';
-                                else if (count > 0) bgClass = 'bg-gold-400 text-white';
-                                
-                                return (
-                                    <div key={d} className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${bgClass}`}>
-                                        {d}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const BadgesRow = ({ streak, lang }) => {
-            const t = translations[lang];
-            const badges = [
-                { id: 1, name: t.badge1, icon: 'star', min: 1, color: 'text-blue-500 bg-blue-50' },
-                { id: 3, name: t.badge3, icon: 'zap', min: 3, color: 'text-gold-500 bg-orange-50' },
-                { id: 7, name: t.badge7, icon: 'trophy', min: 7, color: 'text-purple-500 bg-purple-50' },
-            ];
-
-            return (
-                <div className="flex gap-3 overflow-x-auto hide-scrollbar py-2">
-                    {badges.map(b => {
-                        const unlocked = streak >= b.min;
-                        return (
-                            <div key={b.id} className={`flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${unlocked ? `${b.color} border-transparent shadow-sm` : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 grayscale opacity-50'}`}>
-                                <Icon name={b.icon} size={14} />
-                                <span className="text-[10px] font-bold">{b.name}</span>
-                            </div>
-                        )
-                    })}
                 </div>
             );
         };
@@ -341,12 +421,12 @@
             const t = translations[lang];
             const [prayers, setPrayers] = useState([false, false, false, false, false]);
             const [settings, setSettings] = useState({ pagesPerDay: 5 });
-            const [verseInfo, setVerseInfo] = useState(null);
             const [streak, setStreak] = useState(0);
-            
+            const [verseInfo, setVerseInfo] = useState(null);
             const [showSettings, setShowSettings] = useState(false);
-            const [showShare, setShowShare] = useState(false);
-
+            const [showInsights, setShowInsights] = useState(false);
+            const [historyData, setHistoryData] = useState([]);
+            
             const today = new Date().toISOString().split('T')[0];
             const prayerNames = [t.fajr, t.dhuhr, t.asr, t.maghrib, t.isha];
             const prayerIcons = ['sunrise', 'sun', 'cloud-sun', 'sunset', 'moon'];
@@ -360,63 +440,34 @@
                 const startPage = (diff * p) + 1;
                 return { start: startPage, end: startPage + p - 1 };
             }, [settings.pagesPerDay]);
-            
-            // --- NEW STATS CALCULATIONS ---
+
             const stats = useMemo(() => {
                 if (!pageData) return { khatmas: 0, daysLeft: 0 };
                 const QURAN_PAGES = 604;
                 const currentAbsolutePage = pageData.start;
-                const khatmasCompleted = Math.floor(currentAbsolutePage / QURAN_PAGES);
-                const pagesRemainingInCurrentKhatma = QURAN_PAGES - (currentAbsolutePage % QURAN_PAGES);
-                const daysLeft = Math.ceil(pagesRemainingInCurrentKhatma / settings.pagesPerDay);
-                return { khatmas: khatmasCompleted, daysLeft: daysLeft };
+                const khatmas = Math.floor(currentAbsolutePage / QURAN_PAGES);
+                const remaining = QURAN_PAGES - (currentAbsolutePage % QURAN_PAGES);
+                const days = Math.ceil(remaining / settings.pagesPerDay);
+                return { khatmas, daysLeft: days };
             }, [pageData, settings.pagesPerDay]);
-
-
-            useEffect(() => {
-                const fetchData = async () => {
-                    const { doc, getDoc } = window.firebaseModules;
-                    const userDocRef = doc(window.db, 'users', user.uid);
-                    const userSnap = await getDoc(userDocRef);
-                    if (userSnap.exists()) {
-                        const data = userSnap.data();
-                        if (data.settings && data.settings.pagesPerDay) setSettings(data.settings);
-                        if (data.streak) setStreak(data.streak);
-                    }
-                    const readsDocRef = doc(window.db, 'users', user.uid, 'daily_reads', today);
-                    const readsSnap = await getDoc(readsDocRef);
-                    if (readsSnap.exists()) setPrayers(readsSnap.data().prayers || [false,false,false,false,false]);
-                };
-                fetchData();
-            }, [user]);
 
             useEffect(() => {
                 if (!pageData) return;
                 const fetchQuran = async () => {
-                    setVerseInfo(null);
                     const cacheKey = `quran_${pageData.start}_${pageData.end}`;
                     const cached = safeStorage.getItem(cacheKey);
                     if (cached) { setVerseInfo(JSON.parse(cached)); return; }
-
                     try {
                         const resStart = await fetch(`https://api.alquran.cloud/v1/page/${pageData.start}/quran-uthmani`);
                         const dataStart = await resStart.json();
-                        const sSurah = dataStart.data.ayahs[0].surah;
-                        const sAyah = dataStart.data.ayahs[0].numberInSurah;
-
-                        let eSurah = sSurah, eAyah = sAyah;
+                        let sSurah = dataStart.data.ayahs[0].surah, sAyah = dataStart.data.ayahs[0].numberInSurah, eSurah = sSurah, eAyah = sAyah;
                         if (pageData.start !== pageData.end) {
                             const resEnd = await fetch(`https://api.alquran.cloud/v1/page/${pageData.end}/quran-uthmani`);
                             const dataEnd = await resEnd.json();
                             const lastIdx = dataEnd.data.ayahs.length - 1;
-                            eSurah = dataEnd.data.ayahs[lastIdx].surah;
-                            eAyah = dataEnd.data.ayahs[lastIdx].numberInSurah;
+                            eSurah = dataEnd.data.ayahs[lastIdx].surah; eAyah = dataEnd.data.ayahs[lastIdx].numberInSurah;
                         }
-
-                        const info = {
-                            start: { name: lang==='ar'?sSurah.name:sSurah.englishName, ayah: sAyah },
-                            end: { name: lang==='ar'?eSurah.name:eSurah.englishName, ayah: eAyah }
-                        };
+                        const info = { start: { name: lang==='ar'?sSurah.name:sSurah.englishName, ayah: sAyah }, end: { name: lang==='ar'?eSurah.name:eSurah.englishName, ayah: eAyah } };
                         safeStorage.setItem(cacheKey, JSON.stringify(info));
                         setVerseInfo(info);
                     } catch (e) {}
@@ -424,170 +475,102 @@
                 fetchQuran();
             }, [pageData, lang]);
 
+            useEffect(() => {
+                const init = async () => {
+                    const { doc, getDoc, collection, query, getDocs, orderBy, limit } = window.firebaseModules;
+                    const uSnap = await getDoc(doc(window.db, 'users', user.uid));
+                    if (uSnap.exists()) {
+                        const d = uSnap.data();
+                        if (d.settings?.pagesPerDay) setSettings(d.settings);
+                        if (d.streak) setStreak(d.streak);
+                    }
+                    const pSnap = await getDoc(doc(window.db, 'users', user.uid, 'daily_reads', today));
+                    if (pSnap.exists()) setPrayers(pSnap.data().prayers || [false,false,false,false,false]);
+
+                    const q = query(collection(window.db, 'users', user.uid, 'daily_reads'), orderBy('updatedAt', 'desc'), limit(30));
+                    const hSnap = await getDocs(q);
+                    const history = [];
+                    hSnap.forEach(d => history.push({ date: d.id, ...d.data() }));
+                    setHistoryData(history);
+                };
+                init();
+            }, []);
+
             const handleCheck = async (index) => {
                 const newPrayers = [...prayers];
                 newPrayers[index] = !newPrayers[index];
                 if (newPrayers[index]) playTone('success'); else playTone('click');
                 setPrayers(newPrayers);
-
-                const completed = newPrayers.filter(p => p).length;
-                if (completed === 5 && !prayers.every(p => p)) {
+                const count = newPrayers.filter(p=>p).length;
+                if (count === 5 && !prayers.every(p=>p)) {
                     const canvas = document.getElementById('confetti-canvas');
                     if(canvas) {
                         const ctx = canvas.getContext('2d');
                         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-                        let particles = Array.from({length: 60}, () => ({x: canvas.width/2, y: canvas.height/2, vx: (Math.random()-0.5)*20, vy: (Math.random()-0.5)*20, color: `hsl(${Math.random()*360},100%,50%)`}));
+                        let particles = Array.from({length: 80}, () => ({x: canvas.width/2, y: canvas.height/2, vx: (Math.random()-0.5)*25, vy: (Math.random()-0.5)*25, color: `hsl(${Math.random()*360},100%,50%)`}));
                         let op = 1;
-                        const draw = () => { ctx.clearRect(0,0,canvas.width,canvas.height); op-=0.02; particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;ctx.fillStyle=p.color;ctx.globalAlpha=op;ctx.fillRect(p.x,p.y,5,5)}); if(op>0)requestAnimationFrame(draw); };
+                        const draw = () => { ctx.clearRect(0,0,canvas.width,canvas.height); op-=0.02; particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;ctx.fillStyle=p.color;ctx.globalAlpha=op;ctx.fillRect(p.x,p.y,6,6)}); if(op>0)requestAnimationFrame(draw); };
                         draw();
                     }
                     const newStreak = streak + 1;
                     setStreak(newStreak);
-                    setTimeout(() => setShowShare(true), 1500);
-                    const { doc, setDoc } = window.firebaseModules;
-                    await setDoc(doc(window.db, 'users', user.uid), { streak: newStreak }, { merge: true });
+                    window.firebaseModules.setDoc(window.firebaseModules.doc(window.db, 'users', user.uid), { streak: newStreak }, { merge: true });
                 }
-
-                const { doc, setDoc } = window.firebaseModules;
-                await setDoc(doc(window.db, 'users', user.uid, 'daily_reads', today), { prayers: newPrayers, updatedAt: new Date().toISOString() }, { merge: true });
+                window.firebaseModules.setDoc(window.firebaseModules.doc(window.db, 'users', user.uid, 'daily_reads', today), { prayers: newPrayers, updatedAt: new Date().toISOString() }, { merge: true });
             };
 
-            const handleSaveSettings = async (newPages) => {
-                setShowSettings(false);
-                setSettings({ ...settings, pagesPerDay: newPages });
-                const { doc, setDoc } = window.firebaseModules;
-                await setDoc(doc(window.db, 'users', user.uid), { settings: { pagesPerDay: newPages } }, { merge: true });
-            };
-
-            const completedPrayers = prayers.filter(p => p).length;
-            const progressPercent = (completedPrayers / 5) * 100;
-            const isAllDone = completedPrayers === 5;
-            const pagesTotal = parseInt(settings.pagesPerDay);
-            const pagesDone = Math.round((completedPrayers / 5) * pagesTotal);
-            const pagesPerPrayer = pagesTotal / 5;
+            const completed = prayers.filter(p => p).length;
+            const totalPages = parseInt(settings.pagesPerDay);
+            const donePages = Math.round((completed/5)*totalPages);
+            const pagesPerPrayer = totalPages / 5;
 
             return (
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 font-sans" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-                    <div className="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center shadow-sm">
+                <div className="min-h-screen pb-20 pt-6 px-6 font-sans" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+                    <div className="flex justify-between items-center mb-8">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold shadow-lg">
-                                {user.email[0].toUpperCase()}
+                            <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-white dark:border-slate-600 shadow-sm">
+                                <div className="w-full h-full flex items-center justify-center font-bold text-slate-500 dark:text-slate-300 text-lg">{user.email[0].toUpperCase()}</div>
                             </div>
                             <div>
-                                <h2 className="text-sm font-bold text-gray-800 dark:text-white">{t.welcome}</h2>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">🔥 {streak}</span>
-                                </div>
+                                <p className="text-xs text-slate-400 font-bold">{t.welcome}</p>
+                                <h1 className="text-xl font-bold text-slate-800 dark:text-white">Muslim Habit</h1>
                             </div>
                         </div>
                         <div className="flex gap-2">
-                             <button onClick={() => setLang(l => l === 'ar' ? 'en' : 'ar')} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300">{lang === 'ar' ? 'EN' : 'ع'}</button>
-                            <button onClick={() => setShowSettings(true)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex items-center justify-center"><Icon name="settings" size={14} /></button>
-                            <button onClick={() => window.auth.signOut()} className="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100"><Icon name="log-out" size={14} /></button>
+                            <button onClick={() => setLang(l => l==='ar'?'en':'ar')} className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center text-xs font-bold border border-slate-100 dark:border-slate-700">{lang==='ar'?'EN':'ع'}</button>
+                            {/* Insight Button */}
+                            <button onClick={() => setShowInsights(true)} className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 shadow-glow flex items-center justify-center text-white hover:scale-105 transition border border-white/20"><Icon name="sparkles" size={16} /></button>
+                            <button onClick={() => setShowSettings(true)} className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300"><Icon name="settings" size={18} /></button>
                         </div>
                     </div>
 
-                    <div className="p-6 max-w-lg mx-auto space-y-6 animate-fade-in">
-                        <div className={`relative overflow-hidden rounded-3xl p-6 shadow-xl transition-all duration-500 ${isAllDone ? 'bg-gradient-to-r from-gold-400 to-orange-500' : 'bg-gradient-to-br from-primary-600 to-primary-800'} text-white`}>
-                            <div className="relative z-10 flex justify-between items-end">
-                                <div>
-                                    <p className="text-sm opacity-90 mb-1 font-medium">{t.progress}</p>
-                                    <h1 className="text-4xl font-bold font-quran">{isAllDone ? "🎉" : `${pagesDone}/${pagesTotal}`}</h1>
-                                </div>
-                                <div className="text-right">
-                                     <button onClick={() => setShowShare(true)} className="bg-white/20 hover:bg-white/30 p-2 rounded-xl backdrop-blur-sm transition"><Icon name="share-2" size={20} className="text-white" /></button>
-                                </div>
-                            </div>
-                            <div className="w-full bg-black/20 rounded-full h-2 mt-4 overflow-hidden backdrop-blur-sm">
-                                <div className="h-full bg-white/90 rounded-full transition-all duration-700 ease-out" style={{ width: `${progressPercent}%` }}></div>
-                            </div>
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-                        </div>
-
-                        {/* NEW STATS GRID */}
-                        <StatsGrid khatmas={stats.khatmas} daysLeft={stats.daysLeft} lang={lang} />
-                        
-                        <BadgesRow streak={streak} lang={lang} />
-
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col gap-3 relative overflow-hidden">
-                            <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-2 text-primary-600">
-                                    <Icon name="book-open" size={18} />
-                                    <span className="font-bold text-sm">{t.subtitle}</span>
-                                </div>
-                                <span className="text-[10px] bg-primary-50 text-primary-600 px-2 py-1 rounded-lg font-bold">
-                                    {settings.pagesPerDay} {t.page} / {t.dailyGoal}
-                                </span>
-                            </div>
-                            
-                            {!pageData ? (
-                                <p className="text-center text-gray-400 text-sm py-2">{t.notStarted}</p>
-                            ) : (
-                                <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 transition-all duration-300">
-                                    {!verseInfo ? (
-                                        <div className="w-full text-center py-2 text-gray-400 text-xs animate-pulse">{t.wait}</div>
-                                    ) : (
-                                        <>
-                                            <div className="text-center w-1/2 border-e border-gray-200 dark:border-gray-600 px-2">
-                                                <span className="text-[10px] text-gray-400 block mb-1">{t.from}</span>
-                                                <p className="font-quran font-bold text-gray-800 dark:text-gray-200 text-sm truncate animate-fade-in">{`${t.surah} ${verseInfo.start.name}`}</p>
-                                                <span className="text-xs text-primary-500 font-bold">{t.page} {pageData.start}</span>
-                                            </div>
-                                            <div className="text-center w-1/2 px-2">
-                                                <span className="text-[10px] text-gray-400 block mb-1">{t.to}</span>
-                                                <p className="font-quran font-bold text-gray-800 dark:text-gray-200 text-sm truncate animate-fade-in">{`${t.surah} ${verseInfo.end.name}`}</p>
-                                                <span className="text-xs text-primary-500 font-bold">{t.page} {pageData.end}</span>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
+                    <div className="max-w-md mx-auto animate-fade-in">
+                        <HeroCard streak={streak} pagesDone={donePages} pagesTotal={totalPages} lang={lang} />
+                        <InfoGrid khatmas={stats.khatmas} daysLeft={stats.daysLeft} lang={lang} />
+                        <ReadingScopeCard verseInfo={verseInfo} pageData={pageData} lang={lang} />
+                        <div className="flex items-center gap-2 mb-4 mt-2"><Icon name="list-todo" size={18} className="text-brand-500" /><h3 className="font-bold text-lg text-slate-800 dark:text-white">{t.todayGoal}</h3></div>
                         <div className="space-y-3">
-                            {prayerNames.map((name, idx) => (
-                                <label key={idx} className={`group flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${prayers[idx] ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-primary-300'}`}>
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${prayers[idx] ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-400'}`}>
-                                            <Icon name={prayerIcons[idx]} size={20} />
-                                        </div>
-                                        <div>
-                                            <h3 className={`font-bold text-lg ${prayers[idx] ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'}`}>{name}</h3>
-                                            {pageData && (
-                                                <span className="text-[10px] text-gray-400 font-medium">
-                                                    {t.page} <span className="font-bold font-sans">{(pageData.start + Math.floor(idx * pagesPerPrayer))}</span>
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="checkbox-wrapper relative w-7 h-7">
-                                        <input type="checkbox" className="absolute opacity-0 w-full h-full cursor-pointer z-10" checked={prayers[idx]} onChange={() => handleCheck(idx)} />
-                                        <div className={`w-full h-full rounded-full border-2 flex items-center justify-center transition-all duration-300 ${prayers[idx] ? 'bg-primary-500 border-primary-500 scale-110' : 'border-gray-300 dark:border-gray-600 bg-transparent'}`}>
-                                            <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline className="checkmark" points="20 6 9 17 4 12"></polyline></svg>
-                                        </div>
-                                    </div>
-                                </label>
-                            ))}
+                            {prayerNames.map((name, idx) => ( <PrayerItem key={idx} name={name} icon={prayerIcons[idx]} checked={prayers[idx]} pageInfo={pageData ? `${t.pages} ${Math.floor(pageData.start + (idx * pagesPerPrayer))}` : '...'} onCheck={() => handleCheck(idx)} /> ))}
                         </div>
-                        <HistoryView user={user} lang={lang} />
                     </div>
-                    <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} initialPages={settings.pagesPerDay} onSave={handleSaveSettings} lang={lang} />
-                    <ShareModal isOpen={showShare} onClose={() => setShowShare(false)} pagesCount={pagesDone} lang={lang} />
+
+                    <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} initialPages={settings.pagesPerDay} onSave={async (val) => { setShowSettings(false); setSettings({ ...settings, pagesPerDay: val }); await window.firebaseModules.setDoc(window.firebaseModules.doc(window.db, 'users', user.uid), { settings: { pagesPerDay: val } }, { merge: true }); }} lang={lang} />
+                    <InsightsModal isOpen={showInsights} onClose={() => setShowInsights(false)} historyData={historyData} lang={lang} />
                 </div>
             );
         };
 
         const AuthScreen = ({ lang, setLang }) => {
-            const [isLogin, setIsLogin] = useState(true); const [email, setEmail] = useState(''); const [pass, setPass] = useState(''); const [loading, setLoading] = useState(false); const t = translations[lang];
-            const handleSubmit = async (e) => { e.preventDefault(); setLoading(true); const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.firebaseModules; try { if (isLogin) await signInWithEmailAndPassword(window.auth, email, pass); else await createUserWithEmailAndPassword(window.auth, email, pass); } catch (e) { alert(e.message); setLoading(false); } };
-            return ( <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-primary-50 to-white dark:from-gray-900 dark:to-gray-800"> <div className="glass w-full max-w-md p-8 rounded-3xl shadow-xl animate-slide-up bg-white/80 dark:bg-gray-800/80"> <div className="flex justify-between items-center mb-6"> <button onClick={() => setLang(l => l === 'ar' ? 'en' : 'ar')} className="text-xs font-bold text-gray-500">{lang === 'ar' ? 'EN' : 'ع'}</button> <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center text-2xl">🕌</div> </div> <h1 className="text-2xl font-bold mb-6 text-center dark:text-white">{t.title}</h1> <form onSubmit={handleSubmit} className="space-y-4"> <input type="email" placeholder={t.email} value={email} onChange={e => setEmail(e.target.value)} required className="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-700 border-none outline-none dark:text-white" /> <input type="password" placeholder={t.pass} value={pass} onChange={e => setPass(e.target.value)} required className="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-700 border-none outline-none dark:text-white" /> <div className="flex gap-2 pt-2"> <button type="button" onClick={() => setIsLogin(!isLogin)} className="flex-1 py-3 text-gray-500 text-sm">{isLogin ? t.register : t.login}</button> <button type="submit" disabled={loading} className="flex-[2] py-3 bg-primary-600 text-white rounded-xl font-bold shadow-lg shadow-primary-500/30">{loading ? t.wait : t.submit}</button> </div> </form> </div> </div> );
+            const [isLogin, setIsLogin] = useState(true); const [email, setEmail] = useState(''); const [pass, setPass] = useState(''); const t = translations[lang];
+            const handleAuth = async (e) => { e.preventDefault(); try { const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.firebaseModules; if(isLogin) await signInWithEmailAndPassword(window.auth, email, pass); else await createUserWithEmailAndPassword(window.auth, email, pass); } catch(e) { alert(e.message) } };
+            return ( <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-brand-50 to-white dark:from-slate-900 dark:to-slate-800"> <div className="glass-panel w-full max-w-sm p-10 rounded-[2.5rem] shadow-2xl animate-scale-in text-center relative overflow-hidden"> <div className="w-20 h-20 bg-gradient-to-tr from-brand-400 to-brand-600 rounded-3xl mx-auto mb-6 flex items-center justify-center text-4xl shadow-glow text-white rotate-3">🕌</div> <h1 className="text-3xl font-extrabold mb-2 text-slate-800 dark:text-white font-sans tracking-tight">Muslim Habit</h1> <p className="text-sm text-slate-400 mb-8">{t.shareText}</p> <form onSubmit={handleAuth} className="space-y-4"> <input type="email" placeholder={t.email} value={email} onChange={e=>setEmail(e.target.value)} className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600 focus:border-brand-500 outline-none transition" required /> <input type="password" placeholder={t.pass} value={pass} onChange={e=>setPass(e.target.value)} className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600 focus:border-brand-500 outline-none transition" required /> <button className="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-bold shadow-lg shadow-brand-500/30 transition-transform active:scale-95">{isLogin ? t.login : t.register}</button> </form> <button onClick={() => setIsLogin(!isLogin)} className="mt-6 text-sm text-slate-500 font-bold hover:text-brand-600 transition">{isLogin ? t.register : t.login}</button> <div className="absolute top-6 left-6"><button onClick={() => setLang(l => l==='ar'?'en':'ar')} className="text-xs font-bold text-slate-400 hover:text-brand-500">{lang==='ar'?'EN':'ع'}</button></div> </div> </div> );
         };
 
         const App = () => {
             const [user, setUser] = useState(null); const [lang, setLang] = useState(safeStorage.getItem('appLang') || 'ar');
-            useEffect(() => { const darkQuery = window.matchMedia('(prefers-color-scheme: dark)'); if (darkQuery.matches) document.documentElement.classList.add('dark'); }, []);
-            useEffect(() => { const { onAuthStateChanged } = window.firebaseModules; const unsub = onAuthStateChanged(window.auth, (u) => setUser(u)); return () => unsub(); }, []);
-            useEffect(() => { document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; safeStorage.setItem('appLang', lang); if(lang === 'ar') document.body.classList.add('font-arabic'); else document.body.classList.remove('font-arabic'); }, [lang]);
+            useEffect(() => { const q = window.matchMedia('(prefers-color-scheme: dark)'); if(q.matches) document.documentElement.classList.add('dark'); }, []);
+            useEffect(() => { const { onAuthStateChanged } = window.firebaseModules; const unsub = onAuthStateChanged(window.auth, u => setUser(u)); return () => unsub(); }, []);
+            useEffect(() => { document.documentElement.lang = lang; document.documentElement.dir = lang==='ar'?'rtl':'ltr'; safeStorage.setItem('appLang', lang); if(lang==='ar') document.body.classList.add('font-arabic'); else document.body.classList.remove('font-arabic'); }, [lang]);
             return user ? <Dashboard user={user} lang={lang} setLang={setLang} /> : <AuthScreen lang={lang} setLang={setLang} />;
         };
 
