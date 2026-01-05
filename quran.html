@@ -143,7 +143,8 @@
                 shareTitle: "شارك إنجازك", copy: "نسخ النص", copied: "تم النسخ!",
                 badges: "الأوسمة", badge1: "بداية الخير", badge3: "ثبات", badge7: "أسبوع كامل",
                 shareText: "الحمد لله، أتممت وردي اليومي ({p} صفحات) من القرآن الكريم. 🕌✨ #MuslimHabit",
-                dailyGoal: "هدف اليوم"
+                dailyGoal: "هدف اليوم",
+                daysLeft: "يوم للختمة", khatmasDone: "ختمات منجزة", date: "التاريخ"
             },
             en: {
                 title: "Muslim Habit", subtitle: "Daily Tracker", welcome: "Hi",
@@ -158,7 +159,8 @@
                 shareTitle: "Share Progress", copy: "Copy Text", copied: "Copied!",
                 badges: "Badges", badge1: "First Step", badge3: "Focus", badge7: "Full Week",
                 shareText: "Alhamdulillah, completed my daily wird ({p} pages) of Quran. 🕌✨ #MuslimHabit",
-                dailyGoal: "Daily Goal"
+                dailyGoal: "Daily Goal",
+                daysLeft: "Days to Khatma", khatmasDone: "Khatmas Done", date: "Date"
             }
         };
 
@@ -168,6 +170,31 @@
         };
 
         // --- COMPONENTS ---
+
+        const StatsGrid = ({ khatmas, daysLeft, lang }) => {
+            const t = translations[lang];
+            const dateStr = new Date().toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short' });
+            
+            return (
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 text-center flex flex-col items-center justify-center">
+                        <Icon name="calendar-days" size={16} className="text-primary-500 mb-1" />
+                        <span className="text-[10px] text-gray-400 font-bold">{t.date}</span>
+                        <span className="text-xs font-bold dark:text-gray-200">{dateStr}</span>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 text-center flex flex-col items-center justify-center">
+                        <Icon name="hourglass" size={16} className="text-orange-500 mb-1" />
+                        <span className="text-[10px] text-gray-400 font-bold">{t.daysLeft}</span>
+                        <span className="text-xs font-bold dark:text-gray-200">{daysLeft}</span>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 text-center flex flex-col items-center justify-center">
+                        <Icon name="check-circle-2" size={16} className="text-gold-500 mb-1" />
+                        <span className="text-[10px] text-gray-400 font-bold">{t.khatmasDone}</span>
+                        <span className="text-xs font-bold dark:text-gray-200">{khatmas}</span>
+                    </div>
+                </div>
+            );
+        };
 
         const SettingsModal = ({ isOpen, onClose, initialPages, onSave, lang }) => {
             if (!isOpen) return null;
@@ -333,6 +360,18 @@
                 const startPage = (diff * p) + 1;
                 return { start: startPage, end: startPage + p - 1 };
             }, [settings.pagesPerDay]);
+            
+            // --- NEW STATS CALCULATIONS ---
+            const stats = useMemo(() => {
+                if (!pageData) return { khatmas: 0, daysLeft: 0 };
+                const QURAN_PAGES = 604;
+                const currentAbsolutePage = pageData.start;
+                const khatmasCompleted = Math.floor(currentAbsolutePage / QURAN_PAGES);
+                const pagesRemainingInCurrentKhatma = QURAN_PAGES - (currentAbsolutePage % QURAN_PAGES);
+                const daysLeft = Math.ceil(pagesRemainingInCurrentKhatma / settings.pagesPerDay);
+                return { khatmas: khatmasCompleted, daysLeft: daysLeft };
+            }, [pageData, settings.pagesPerDay]);
+
 
             useEffect(() => {
                 const fetchData = async () => {
@@ -423,11 +462,8 @@
             const completedPrayers = prayers.filter(p => p).length;
             const progressPercent = (completedPrayers / 5) * 100;
             const isAllDone = completedPrayers === 5;
-            
-            // Calculate actual pages done for display (e.g. 2/10 or 10/10)
             const pagesTotal = parseInt(settings.pagesPerDay);
             const pagesDone = Math.round((completedPrayers / 5) * pagesTotal);
-
             const pagesPerPrayer = pagesTotal / 5;
 
             return (
@@ -468,6 +504,9 @@
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
                         </div>
 
+                        {/* NEW STATS GRID */}
+                        <StatsGrid khatmas={stats.khatmas} daysLeft={stats.daysLeft} lang={lang} />
+                        
                         <BadgesRow streak={streak} lang={lang} />
 
                         <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col gap-3 relative overflow-hidden">
