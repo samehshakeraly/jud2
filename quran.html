@@ -25,6 +25,7 @@
                         'fade-in': 'fadeIn 0.5s ease-out',
                         'slide-up': 'slideUp 0.5s ease-out',
                         'bounce-short': 'bounceShort 0.5s ease-in-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
@@ -75,7 +76,6 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Checkbox Animation */
         .checkbox-wrapper input:checked + div { background-color: #10b981; border-color: #10b981; }
         .checkbox-wrapper input:checked + div svg { stroke-dashoffset: 0; }
         .checkmark { stroke-dasharray: 24; stroke-dashoffset: 24; transition: stroke-dashoffset 0.4s ease-in-out; }
@@ -140,10 +140,11 @@
                 wait: "...", notStarted: "يبدأ 2026", completedMsg: "ما شاء الله!",
                 from: "من", to: "إلى", surah: "سورة",
                 streak: "أيام متتالية", settings: "الإعدادات", history: "السجل",
-                pagesPerDay: "عدد الصفحات يومياً", save: "حفظ",
+                pagesPerDay: "عدد الصفحات يومياً", save: "حفظ التغييرات", cancel: "إلغاء",
                 shareTitle: "شارك إنجازك", copy: "نسخ النص", copied: "تم النسخ!",
                 badges: "الأوسمة", badge1: "بداية الخير", badge3: "ثبات", badge7: "أسبوع كامل",
-                shareText: "الحمد لله، أتممت وردي اليومي ({p}/5) صلوات وصفحات القرآن. 🕌✨ #MuslimHabit"
+                shareText: "الحمد لله، أتممت وردي اليومي ({p}/5) صلوات وصفحات القرآن. 🕌✨ #MuslimHabit",
+                dailyGoal: "هدف اليوم"
             },
             en: {
                 title: "Muslim Habit", subtitle: "Daily Tracker", welcome: "Hi",
@@ -154,10 +155,11 @@
                 wait: "...", notStarted: "Starts 2026", completedMsg: "Great Job!",
                 from: "From", to: "To", surah: "Surah",
                 streak: "Streak", settings: "Settings", history: "History",
-                pagesPerDay: "Pages per day", save: "Save",
+                pagesPerDay: "Pages per day", save: "Save Changes", cancel: "Cancel",
                 shareTitle: "Share Progress", copy: "Copy Text", copied: "Copied!",
                 badges: "Badges", badge1: "First Step", badge3: "Focus", badge7: "Full Week",
-                shareText: "Alhamdulillah, completed my daily wird ({p}/5) prayers & Quran pages. 🕌✨ #MuslimHabit"
+                shareText: "Alhamdulillah, completed my daily wird ({p}/5) prayers & Quran pages. 🕌✨ #MuslimHabit",
+                dailyGoal: "Daily Goal"
             }
         };
 
@@ -169,10 +171,13 @@
 
         // --- SUB-COMPONENTS ---
 
-        // 1. Settings Modal
-        const SettingsModal = ({ isOpen, onClose, pages, setPages, lang }) => {
+        // 1. Settings Modal (FIXED: Internal State)
+        const SettingsModal = ({ isOpen, onClose, initialPages, onSave, lang }) => {
             if (!isOpen) return null;
             const t = translations[lang];
+            // Use internal state so we don't spam updates
+            const [localPages, setLocalPages] = useState(initialPages);
+
             return (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl w-full max-w-sm shadow-2xl animate-slide-up">
@@ -182,13 +187,16 @@
                         </div>
                         <div className="mb-6">
                             <label className="block text-sm text-gray-500 mb-2">{t.pagesPerDay}</label>
-                            <div className="flex items-center gap-4">
-                                <button onClick={() => setPages(Math.max(1, pages - 1))} className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 font-bold text-xl">-</button>
-                                <span className="text-2xl font-bold dark:text-white w-12 text-center">{pages}</span>
-                                <button onClick={() => setPages(pages + 1)} className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 font-bold text-xl">+</button>
+                            <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-2xl justify-between">
+                                <button onClick={() => setLocalPages(Math.max(1, localPages - 1))} className="w-10 h-10 rounded-xl bg-white dark:bg-gray-600 shadow-sm font-bold text-xl hover:scale-105 transition">-</button>
+                                <span className="text-2xl font-bold dark:text-white w-12 text-center">{localPages}</span>
+                                <button onClick={() => setLocalPages(localPages + 1)} className="w-10 h-10 rounded-xl bg-primary-500 text-white shadow-sm font-bold text-xl hover:scale-105 transition">+</button>
                             </div>
                         </div>
-                        <button onClick={onClose} className="w-full py-3 bg-primary-600 text-white rounded-xl font-bold">{t.save}</button>
+                        <div className="flex gap-2">
+                            <button onClick={onClose} className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl font-bold">{t.cancel}</button>
+                            <button onClick={() => onSave(localPages)} className="flex-[2] py-3 bg-primary-600 text-white rounded-xl font-bold shadow-lg shadow-primary-500/20">{t.save}</button>
+                        </div>
                     </div>
                 </div>
             );
@@ -230,7 +238,7 @@
             );
         };
 
-        // 3. Calendar & History Component
+        // 3. History Component
         const HistoryView = ({ user, lang }) => {
             const [history, setHistory] = useState({});
             const [loading, setLoading] = useState(true);
@@ -238,10 +246,8 @@
 
             useEffect(() => {
                 const fetchHistory = async () => {
-                    const { collection, getDocs, query, where } = window.firebaseModules;
-                    // Fetch last 30 days roughly
-                    const q = query(collection(window.db, 'users', user.uid, 'daily_reads')); 
-                    // ideally filter by date range, but fetching all for this demo size is fine
+                    const { collection, getDocs, query } = window.firebaseModules;
+                    const q = query(collection(window.db, 'users', user.uid, 'daily_reads'));
                     const snap = await getDocs(q);
                     const data = {};
                     snap.forEach(doc => {
@@ -255,11 +261,10 @@
                 fetchHistory();
             }, [user]);
 
-            // Generate Calendar Days (Current Month)
             const date = new Date();
             const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
             const days = Array.from({length: daysInMonth}, (_, i) => i + 1);
-            const currentMonthStr = date.toISOString().slice(0, 7); // YYYY-MM
+            const currentMonthStr = date.toISOString().slice(0, 7); 
 
             return (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 mt-4">
@@ -287,7 +292,6 @@
             );
         };
 
-        // 4. Badges Component
         const BadgesRow = ({ streak, lang }) => {
             const t = translations[lang];
             const badges = [
@@ -317,10 +321,8 @@
             const [prayers, setPrayers] = useState([false, false, false, false, false]);
             const [settings, setSettings] = useState({ pagesPerDay: 5 });
             const [verseInfo, setVerseInfo] = useState(null);
-            const [loading, setLoading] = useState(true);
             const [streak, setStreak] = useState(0);
             
-            // Modals State
             const [showSettings, setShowSettings] = useState(false);
             const [showShare, setShowShare] = useState(false);
 
@@ -328,46 +330,40 @@
             const prayerNames = [t.fajr, t.dhuhr, t.asr, t.maghrib, t.isha];
             const prayerIcons = ['sunrise', 'sun', 'cloud-sun', 'sunset', 'moon'];
 
-            // Calculate Pages
+            // Calculate Pages (Memoized, strictly depends on settings.pagesPerDay)
             const pageData = useMemo(() => {
                 const start2026 = new Date('2026-01-01').getTime();
                 const now = new Date().getTime();
                 const diff = Math.floor((now - start2026) / (1000 * 60 * 60 * 24));
                 if (diff < 0) return null;
-                const p = settings.pagesPerDay;
+                const p = parseInt(settings.pagesPerDay);
                 const startPage = (diff * p) + 1;
                 return { start: startPage, end: startPage + p - 1 };
             }, [settings.pagesPerDay]);
 
-            // Data Fetching
+            // Initial Fetch
             useEffect(() => {
                 const fetchData = async () => {
                     const { doc, getDoc } = window.firebaseModules;
-                    
-                    // 1. Get User Profile (Settings & Streak)
                     const userDocRef = doc(window.db, 'users', user.uid);
                     const userSnap = await getDoc(userDocRef);
                     if (userSnap.exists()) {
                         const data = userSnap.data();
-                        if (data.settings) setSettings(data.settings);
+                        if (data.settings && data.settings.pagesPerDay) setSettings(data.settings);
                         if (data.streak) setStreak(data.streak);
                     }
-
-                    // 2. Get Today's Prayers
                     const readsDocRef = doc(window.db, 'users', user.uid, 'daily_reads', today);
                     const readsSnap = await getDoc(readsDocRef);
-                    if (readsSnap.exists()) {
-                        setPrayers(readsSnap.data().prayers || [false,false,false,false,false]);
-                    }
-                    setLoading(false);
+                    if (readsSnap.exists()) setPrayers(readsSnap.data().prayers || [false,false,false,false,false]);
                 };
                 fetchData();
             }, [user]);
 
-            // Quran API
+            // Quran API Fetch
             useEffect(() => {
                 if (!pageData) return;
                 const fetchQuran = async () => {
+                    setVerseInfo(null); // Clear previous to show loading state if needed
                     const cacheKey = `quran_${pageData.start}_${pageData.end}`;
                     const cached = safeStorage.getItem(cacheKey);
                     if (cached) { setVerseInfo(JSON.parse(cached)); return; }
@@ -398,61 +394,39 @@
                 fetchQuran();
             }, [pageData, lang]);
 
-            // Interaction Handler
+            // Handler: Check Prayer
             const handleCheck = async (index) => {
                 const newPrayers = [...prayers];
                 newPrayers[index] = !newPrayers[index];
-                
-                if (newPrayers[index]) playTone('success');
-                else playTone('click');
-
+                if (newPrayers[index]) playTone('success'); else playTone('click');
                 setPrayers(newPrayers);
 
-                // Check Completion for Streak & Confetti
                 const completedCount = newPrayers.filter(p => p).length;
                 if (completedCount === 5 && !prayers.every(p => p)) {
-                    // Just completed all
+                    // Confetti & Streak
                     const canvas = document.getElementById('confetti-canvas');
-                    // Simple confetti implementation
                     if(canvas) {
                         const ctx = canvas.getContext('2d');
-                        canvas.width = window.innerWidth;
-                        canvas.height = window.innerHeight;
-                        let particles = Array.from({length: 50}, () => ({
-                            x: canvas.width/2, y: canvas.height/2, 
-                            vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15,
-                            color: `hsl(${Math.random()*360}, 100%, 50%)`
-                        }));
+                        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+                        let particles = Array.from({length: 60}, () => ({x: canvas.width/2, y: canvas.height/2, vx: (Math.random()-0.5)*20, vy: (Math.random()-0.5)*20, color: `hsl(${Math.random()*360},100%,50%)`}));
                         let op = 1;
-                        const draw = () => {
-                            ctx.clearRect(0,0,canvas.width,canvas.height);
-                            op -= 0.02;
-                            particles.forEach(p => { p.x+=p.vx; p.y+=p.vy; ctx.fillStyle=p.color; ctx.globalAlpha=op; ctx.fillRect(p.x,p.y,5,5); });
-                            if(op>0) requestAnimationFrame(draw);
-                        };
+                        const draw = () => { ctx.clearRect(0,0,canvas.width,canvas.height); op-=0.02; particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;ctx.fillStyle=p.color;ctx.globalAlpha=op;ctx.fillRect(p.x,p.y,5,5)}); if(op>0)requestAnimationFrame(draw); };
                         draw();
                     }
-                    
-                    // Update Streak Logic (Mocked for frontend-heavy)
                     const newStreak = streak + 1;
                     setStreak(newStreak);
-                    
-                    // Show Share Modal after a delay
                     setTimeout(() => setShowShare(true), 1500);
-
-                    // Save Streak
-                     const { doc, setDoc } = window.firebaseModules;
-                     await setDoc(doc(window.db, 'users', user.uid), { streak: newStreak }, { merge: true });
+                    const { doc, setDoc } = window.firebaseModules;
+                    await setDoc(doc(window.db, 'users', user.uid), { streak: newStreak }, { merge: true });
                 }
 
-                // Save Daily
                 const { doc, setDoc } = window.firebaseModules;
-                await setDoc(doc(window.db, 'users', user.uid, 'daily_reads', today), {
-                    prayers: newPrayers, updatedAt: new Date().toISOString()
-                }, { merge: true });
+                await setDoc(doc(window.db, 'users', user.uid, 'daily_reads', today), { prayers: newPrayers, updatedAt: new Date().toISOString() }, { merge: true });
             };
 
-            const updateSettings = async (newPages) => {
+            // Handler: Save Settings (Triggers update)
+            const handleSaveSettings = async (newPages) => {
+                setShowSettings(false);
                 setSettings({ ...settings, pagesPerDay: newPages });
                 const { doc, setDoc } = window.firebaseModules;
                 await setDoc(doc(window.db, 'users', user.uid), { settings: { pagesPerDay: newPages } }, { merge: true });
@@ -461,11 +435,12 @@
             const completedCount = prayers.filter(p => p).length;
             const progress = (completedCount / 5) * 100;
             const isAllDone = completedCount === 5;
+            
+            // Calculate prayer page spread safely
+            const pagesPerPrayer = settings.pagesPerDay / 5;
 
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 font-sans" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-                    
-                    {/* Header */}
                     <div className="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center shadow-sm">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold shadow-lg">
@@ -474,28 +449,18 @@
                             <div>
                                 <h2 className="text-sm font-bold text-gray-800 dark:text-white">{t.welcome}</h2>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-                                        🔥 {streak}
-                                    </span>
+                                    <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">🔥 {streak}</span>
                                 </div>
                             </div>
                         </div>
                         <div className="flex gap-2">
-                             <button onClick={() => setLang(l => l === 'ar' ? 'en' : 'ar')} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300">
-                                {lang === 'ar' ? 'EN' : 'ع'}
-                            </button>
-                            <button onClick={() => setShowSettings(true)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex items-center justify-center">
-                                <Icon name="settings" size={14} />
-                            </button>
-                            <button onClick={() => window.auth.signOut()} className="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100">
-                                <Icon name="log-out" size={14} />
-                            </button>
+                             <button onClick={() => setLang(l => l === 'ar' ? 'en' : 'ar')} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300">{lang === 'ar' ? 'EN' : 'ع'}</button>
+                            <button onClick={() => setShowSettings(true)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex items-center justify-center"><Icon name="settings" size={14} /></button>
+                            <button onClick={() => window.auth.signOut()} className="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100"><Icon name="log-out" size={14} /></button>
                         </div>
                     </div>
 
                     <div className="p-6 max-w-lg mx-auto space-y-6 animate-fade-in">
-                        
-                        {/* 1. Streak & Progress Card */}
                         <div className={`relative overflow-hidden rounded-3xl p-6 shadow-xl transition-all duration-500 ${isAllDone ? 'bg-gradient-to-r from-gold-400 to-orange-500' : 'bg-gradient-to-br from-primary-600 to-primary-800'} text-white`}>
                             <div className="relative z-10 flex justify-between items-end">
                                 <div>
@@ -503,55 +468,53 @@
                                     <h1 className="text-4xl font-bold font-quran">{isAllDone ? "🎉" : `${completedCount}/5`}</h1>
                                 </div>
                                 <div className="text-right">
-                                     <button onClick={() => setShowShare(true)} className="bg-white/20 hover:bg-white/30 p-2 rounded-xl backdrop-blur-sm transition">
-                                        <Icon name="share-2" size={20} className="text-white" />
-                                     </button>
+                                     <button onClick={() => setShowShare(true)} className="bg-white/20 hover:bg-white/30 p-2 rounded-xl backdrop-blur-sm transition"><Icon name="share-2" size={20} className="text-white" /></button>
                                 </div>
                             </div>
                             <div className="w-full bg-black/20 rounded-full h-2 mt-4 overflow-hidden backdrop-blur-sm">
                                 <div className="h-full bg-white/90 rounded-full transition-all duration-700 ease-out" style={{ width: `${progress}%` }}></div>
                             </div>
-                            
-                            {/* Decorative */}
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
                         </div>
 
-                        {/* 2. Badges Row */}
                         <BadgesRow streak={streak} lang={lang} />
 
-                        {/* 3. Quran Info Card */}
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col gap-3">
+                        {/* Quran Info Card */}
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col gap-3 relative overflow-hidden">
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-2 text-primary-600">
                                     <Icon name="book-open" size={18} />
                                     <span className="font-bold text-sm">{t.subtitle}</span>
                                 </div>
-                                <span className="text-[10px] text-gray-400">{settings.pagesPerDay} {t.page}/{t.dhuhr}</span>
+                                <span className="text-[10px] bg-primary-50 text-primary-600 px-2 py-1 rounded-lg font-bold">
+                                    {settings.pagesPerDay} {t.page} / {t.dailyGoal}
+                                </span>
                             </div>
                             
                             {!pageData ? (
                                 <p className="text-center text-gray-400 text-sm py-2">{t.notStarted}</p>
                             ) : (
-                                <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3">
-                                    <div className="text-center w-1/2 border-e border-gray-200 dark:border-gray-600 px-2">
-                                        <span className="text-[10px] text-gray-400 block mb-1">{t.from}</span>
-                                        <p className="font-quran font-bold text-gray-800 dark:text-gray-200 text-sm truncate">
-                                            {verseInfo ? `${t.surah} ${verseInfo.start.name}` : '...'}
-                                        </p>
-                                        <span className="text-xs text-primary-500 font-bold">{t.page} {pageData.start}</span>
-                                    </div>
-                                    <div className="text-center w-1/2 px-2">
-                                        <span className="text-[10px] text-gray-400 block mb-1">{t.to}</span>
-                                        <p className="font-quran font-bold text-gray-800 dark:text-gray-200 text-sm truncate">
-                                            {verseInfo ? `${t.surah} ${verseInfo.end.name}` : '...'}
-                                        </p>
-                                        <span className="text-xs text-primary-500 font-bold">{t.page} {pageData.end}</span>
-                                    </div>
+                                <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 transition-all duration-300">
+                                    {!verseInfo ? (
+                                        <div className="w-full text-center py-2 text-gray-400 text-xs animate-pulse">{t.wait}</div>
+                                    ) : (
+                                        <>
+                                            <div className="text-center w-1/2 border-e border-gray-200 dark:border-gray-600 px-2">
+                                                <span className="text-[10px] text-gray-400 block mb-1">{t.from}</span>
+                                                <p className="font-quran font-bold text-gray-800 dark:text-gray-200 text-sm truncate animate-fade-in">{`${t.surah} ${verseInfo.start.name}`}</p>
+                                                <span className="text-xs text-primary-500 font-bold">{t.page} {pageData.start}</span>
+                                            </div>
+                                            <div className="text-center w-1/2 px-2">
+                                                <span className="text-[10px] text-gray-400 block mb-1">{t.to}</span>
+                                                <p className="font-quran font-bold text-gray-800 dark:text-gray-200 text-sm truncate animate-fade-in">{`${t.surah} ${verseInfo.end.name}`}</p>
+                                                <span className="text-xs text-primary-500 font-bold">{t.page} {pageData.end}</span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             )}
                         </div>
 
-                        {/* 4. Prayer List */}
                         <div className="space-y-3">
                             {prayerNames.map((name, idx) => (
                                 <label key={idx} className={`group flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${prayers[idx] ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-primary-300'}`}>
@@ -563,98 +526,39 @@
                                             <h3 className={`font-bold text-lg ${prayers[idx] ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'}`}>{name}</h3>
                                             {pageData && (
                                                 <span className="text-[10px] text-gray-400 font-medium">
-                                                    {t.page} <span className="font-bold font-sans">{(pageData.start + (idx * Math.floor(settings.pagesPerDay/5)))}</span>
+                                                    {t.page} <span className="font-bold font-sans">{(pageData.start + Math.floor(idx * pagesPerPrayer))}</span>
                                                 </span>
                                             )}
                                         </div>
                                     </div>
-
                                     <div className="checkbox-wrapper relative w-7 h-7">
                                         <input type="checkbox" className="absolute opacity-0 w-full h-full cursor-pointer z-10" checked={prayers[idx]} onChange={() => handleCheck(idx)} />
                                         <div className={`w-full h-full rounded-full border-2 flex items-center justify-center transition-all duration-300 ${prayers[idx] ? 'bg-primary-500 border-primary-500 scale-110' : 'border-gray-300 dark:border-gray-600 bg-transparent'}`}>
-                                            <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                                <polyline className="checkmark" points="20 6 9 17 4 12"></polyline>
-                                            </svg>
+                                            <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline className="checkmark" points="20 6 9 17 4 12"></polyline></svg>
                                         </div>
                                     </div>
                                 </label>
                             ))}
                         </div>
-
-                        {/* 5. Calendar History */}
                         <HistoryView user={user} lang={lang} />
                     </div>
-
-                    {/* Modals */}
-                    <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} pages={settings.pagesPerDay} setPages={updateSettings} lang={lang} />
+                    <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} initialPages={settings.pagesPerDay} onSave={handleSaveSettings} lang={lang} />
                     <ShareModal isOpen={showShare} onClose={() => setShowShare(false)} completedCount={completedCount} lang={lang} />
                 </div>
             );
         };
 
-        // Auth Component (Simplified for brevity as it was working)
         const AuthScreen = ({ lang, setLang }) => {
-            const [isLogin, setIsLogin] = useState(true);
-            const [email, setEmail] = useState('');
-            const [pass, setPass] = useState('');
-            const [loading, setLoading] = useState(false);
-            const t = translations[lang];
-
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                setLoading(true);
-                const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.firebaseModules;
-                try {
-                    if (isLogin) await signInWithEmailAndPassword(window.auth, email, pass);
-                    else await createUserWithEmailAndPassword(window.auth, email, pass);
-                } catch (e) { alert(e.message); setLoading(false); }
-            };
-
-            return (
-                <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-primary-50 to-white dark:from-gray-900 dark:to-gray-800">
-                    <div className="glass w-full max-w-md p-8 rounded-3xl shadow-xl animate-slide-up bg-white/80 dark:bg-gray-800/80">
-                         <div className="flex justify-between items-center mb-6">
-                            <button onClick={() => setLang(l => l === 'ar' ? 'en' : 'ar')} className="text-xs font-bold text-gray-500">{lang === 'ar' ? 'EN' : 'ع'}</button>
-                            <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center text-2xl">🕌</div>
-                        </div>
-                        <h1 className="text-2xl font-bold mb-6 text-center dark:text-white">{t.title}</h1>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <input type="email" placeholder={t.email} value={email} onChange={e => setEmail(e.target.value)} required className="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-700 border-none outline-none dark:text-white" />
-                            <input type="password" placeholder={t.pass} value={pass} onChange={e => setPass(e.target.value)} required className="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-700 border-none outline-none dark:text-white" />
-                            <div className="flex gap-2 pt-2">
-                                <button type="button" onClick={() => setIsLogin(!isLogin)} className="flex-1 py-3 text-gray-500 text-sm">{isLogin ? t.register : t.login}</button>
-                                <button type="submit" disabled={loading} className="flex-[2] py-3 bg-primary-600 text-white rounded-xl font-bold shadow-lg shadow-primary-500/30">{loading ? t.wait : t.submit}</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            );
+            const [isLogin, setIsLogin] = useState(true); const [email, setEmail] = useState(''); const [pass, setPass] = useState(''); const [loading, setLoading] = useState(false); const t = translations[lang];
+            const handleSubmit = async (e) => { e.preventDefault(); setLoading(true); const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.firebaseModules; try { if (isLogin) await signInWithEmailAndPassword(window.auth, email, pass); else await createUserWithEmailAndPassword(window.auth, email, pass); } catch (e) { alert(e.message); setLoading(false); } };
+            return ( <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-primary-50 to-white dark:from-gray-900 dark:to-gray-800"> <div className="glass w-full max-w-md p-8 rounded-3xl shadow-xl animate-slide-up bg-white/80 dark:bg-gray-800/80"> <div className="flex justify-between items-center mb-6"> <button onClick={() => setLang(l => l === 'ar' ? 'en' : 'ar')} className="text-xs font-bold text-gray-500">{lang === 'ar' ? 'EN' : 'ع'}</button> <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center text-2xl">🕌</div> </div> <h1 className="text-2xl font-bold mb-6 text-center dark:text-white">{t.title}</h1> <form onSubmit={handleSubmit} className="space-y-4"> <input type="email" placeholder={t.email} value={email} onChange={e => setEmail(e.target.value)} required className="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-700 border-none outline-none dark:text-white" /> <input type="password" placeholder={t.pass} value={pass} onChange={e => setPass(e.target.value)} required className="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-700 border-none outline-none dark:text-white" /> <div className="flex gap-2 pt-2"> <button type="button" onClick={() => setIsLogin(!isLogin)} className="flex-1 py-3 text-gray-500 text-sm">{isLogin ? t.register : t.login}</button> <button type="submit" disabled={loading} className="flex-[2] py-3 bg-primary-600 text-white rounded-xl font-bold shadow-lg shadow-primary-500/30">{loading ? t.wait : t.submit}</button> </div> </form> </div> </div> );
         };
 
         const App = () => {
-            const [user, setUser] = useState(null);
-            const [lang, setLang] = useState(safeStorage.getItem('appLang') || 'ar');
-            
-            // Auto Dark Mode
-            useEffect(() => {
-                const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
-                if (darkQuery.matches) document.documentElement.classList.add('dark');
-            }, []);
-
-            useEffect(() => {
-                const { onAuthStateChanged } = window.firebaseModules;
-                const unsub = onAuthStateChanged(window.auth, (u) => setUser(u));
-                return () => unsub();
-            }, []);
-
-            useEffect(() => {
-                document.documentElement.lang = lang;
-                document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-                safeStorage.setItem('appLang', lang);
-                if(lang === 'ar') document.body.classList.add('font-arabic');
-                else document.body.classList.remove('font-arabic');
-            }, [lang]);
-
+            const [user, setUser] = useState(null); const [lang, setLang] = useState(safeStorage.getItem('appLang') || 'ar');
+            useEffect(() => { const darkQuery = window.matchMedia('(prefers-color-scheme: dark)'); if (darkQuery.matches) document.documentElement.classList.add('dark'); }, []);
+            useEffect(() => { const { onAuthStateChanged } = window.firebaseModules; const unsub = onAuthStateChanged(window.auth, (u) => setUser(u)); return () => unsub(); }, []);
+            useEffect(() => { document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; safeStorage.setItem('appLang', lang); if(lang === 'ar') document.body.classList.add('font-arabic'); else document.body.classList.remove('font-arabic'); }, [lang]);
             return user ? <Dashboard user={user} lang={lang} setLang={setLang} /> : <AuthScreen lang={lang} setLang={setLang} />;
         };
 
